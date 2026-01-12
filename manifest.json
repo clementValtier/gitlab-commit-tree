@@ -29,5 +29,15 @@
     "commit-tree-utils.js",
     "commit-tree-api.js",
     "commit-tree-renderer.js"
-  ]
+  ],
+  "browser_specific_settings": {
+    "gecko": {
+        "data_collection_permissions": {
+          "required": [
+            "none"
+          ],
+          "optional": []
+         }
+      }
+  }
 }
