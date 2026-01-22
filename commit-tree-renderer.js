@@ -525,14 +525,16 @@ export function renderDiff(container, diffContent) {
     }
 
     const lines = diffContent.split('\n');
-    
     const table = createElement('div', { className: 'ct-diff-table' });
 
     let oldLineNum = 0;
     let newLineNum = 0;
     let sectionCount = 0;
 
-    lines.forEach(line => {
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+
+        // Gestion des séparateurs @@
         if (line.startsWith('@@')) {
             const match = line.match(/@@ -(\d+)(?:,\d+)? \+(\d+)(?:,\d+)? @@/);
             if (match) {
@@ -551,59 +553,115 @@ export function renderDiff(container, diffContent) {
                 separatorRow.appendChild(separatorCell3);
                 table.appendChild(separatorRow);
             }
-            return;
+            continue;
         }
 
         if (line.startsWith('+++') || line.startsWith('---') || line.startsWith('\\')) {
-            return;
+            continue;
         }
 
-        let lineType = 'context';
-        let oldNum = '';
-        let newNum = '';
-        let lineContent = line;
+        // Détecter une paire - / + (modification)
+        const nextLine = lines[i + 1];
+        if (line.startsWith('-') && nextLine && nextLine.startsWith('+') && typeof Diff !== 'undefined') {
+            // Paire de modification détectée
+            const oldContent = line.substring(1);
+            const newContent = nextLine.substring(1);
+            const oldNum = oldLineNum++;
+            const newNum = newLineNum++;
 
+            // Calculer le diff mot par mot
+            const changes = Diff.diffWords(oldContent, newContent);
+
+            // Ligne removed avec surlignage
+            renderModifiedLine(table, 'removed', oldNum, '', changes, true);
+            
+            // Ligne added avec surlignage
+            renderModifiedLine(table, 'added', '', newNum, changes, false);
+
+            i++; // Sauter la ligne + car déjà traitée
+            continue;
+        }
+
+        // Lignes normales (context, added, removed seuls)
+        renderNormalLine(table, line, oldLineNum, newLineNum);
+        
         if (line.startsWith('+')) {
-            lineType = 'added';
-            oldNum = '';
-            newNum = newLineNum++;
-            lineContent = line.substring(1);
+            newLineNum++;
         } else if (line.startsWith('-')) {
-            lineType = 'removed';
-            oldNum = oldLineNum++;
-            newNum = '';
-            lineContent = line.substring(1);
+            oldLineNum++;
         } else if (line.startsWith(' ')) {
-            lineType = 'context';
-            oldNum = oldLineNum++;
-            newNum = newLineNum++;
-            lineContent = line.substring(1);
-        } else {
-            return;
+            oldLineNum++;
+            newLineNum++;
         }
-
-        const lineRow = createElement('div', { 
-            className: `ct-diff-line ct-diff-line-${lineType}` 
-        });
-
-        const oldNumCell = createElement('span', { className: 'ct-line-num ct-line-num-old' }, oldNum.toString());
-        const newNumCell = createElement('span', { className: 'ct-line-num ct-line-num-new' }, newNum.toString());
-        const contentCell = createElement('span', { className: 'ct-line-content' });
-
-        if (lineContent === '') {
-            contentCell.innerHTML = ' ';
-        } else {
-            contentCell.textContent = lineContent;
-        }
-
-        lineRow.appendChild(oldNumCell);
-        lineRow.appendChild(newNumCell);
-        lineRow.appendChild(contentCell);
-
-        table.appendChild(lineRow);
-    });
+    }
 
     container.appendChild(table);
+}
+
+// Fonction helper pour les lignes modifiées avec surlignage
+function renderModifiedLine(table, type, oldNum, newNum, changes, isRemoved) {
+    const lineRow = createElement('div', { className: `ct-diff-line ct-diff-line-${type}` });
+    const oldNumCell = createElement('span', { className: 'ct-line-num ct-line-num-old' }, oldNum.toString());
+    const newNumCell = createElement('span', { className: 'ct-line-num ct-line-num-new' }, newNum.toString());
+    const contentCell = createElement('span', { className: 'ct-line-content' });
+
+    changes.forEach(part => {
+        if (isRemoved && part.removed) {
+            const span = createElement('span', { className: 'ct-word-removed' }, part.value);
+            contentCell.appendChild(span);
+        } else if (!isRemoved && part.added) {
+            const span = createElement('span', { className: 'ct-word-added' }, part.value);
+            contentCell.appendChild(span);
+        } else if (!part.added && !part.removed) {
+            contentCell.appendChild(document.createTextNode(part.value));
+        }
+    });
+
+    lineRow.appendChild(oldNumCell);
+    lineRow.appendChild(newNumCell);
+    lineRow.appendChild(contentCell);
+    table.appendChild(lineRow);
+}
+
+// Fonction helper pour les lignes normales
+function renderNormalLine(table, line, oldLineNum, newLineNum) {
+    let lineType = 'context';
+    let oldNum = '';
+    let newNum = '';
+    let lineContent = line;
+
+    if (line.startsWith('+')) {
+        lineType = 'added';
+        newNum = newLineNum;
+        lineContent = line.substring(1);
+    } else if (line.startsWith('-')) {
+        lineType = 'removed';
+        oldNum = oldLineNum;
+        lineContent = line.substring(1);
+    } else if (line.startsWith(' ')) {
+        lineType = 'context';
+        oldNum = oldLineNum;
+        newNum = newLineNum;
+        lineContent = line.substring(1);
+    } else {
+        return;
+    }
+
+    const lineRow = createElement('div', { className: `ct-diff-line ct-diff-line-${lineType}` });
+    const oldNumCell = createElement('span', { className: 'ct-line-num ct-line-num-old' }, oldNum.toString());
+    const newNumCell = createElement('span', { className: 'ct-line-num ct-line-num-new' }, newNum.toString());
+    const contentCell = createElement('span', { className: 'ct-line-content' });
+
+    if (lineContent === '') {
+        contentCell.innerHTML = ' ';
+    } else {
+        contentCell.textContent = lineContent;
+    }
+
+    lineRow.appendChild(oldNumCell);
+    lineRow.appendChild(newNumCell);
+    lineRow.appendChild(contentCell);
+    table.appendChild(lineRow);
 }
 
 /**

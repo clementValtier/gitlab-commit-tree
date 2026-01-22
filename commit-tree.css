@@ -641,6 +641,32 @@
     color: var(--ct-text-default);
 }
 
+/* Word-level highlighting for modified lines */
+.ct-word-added {
+    background-color: #91d4a8;
+    color: #0e4329;
+    font-weight: 600;
+}
+
+.ct-word-removed {
+    background-color: #f99;
+    color: #5c1a1a;
+    font-weight: 600;
+}
+
+/* Dark mode word-level highlighting */
+.gl-dark .ct-word-added,
+[data-theme="dark"] .ct-word-added {
+    background-color: #2da160;
+    color: #ddfbe6;
+}
+
+.gl-dark .ct-word-removed,
+[data-theme="dark"] .ct-word-removed {
+    background-color: #c73838;
+    color: #f9d7dc;
+}
+
 /* Dark mode adjustments */
 .gl-dark .ct-diff-line-added .ct-line-num,
 [data-theme="dark"] .ct-diff-line-added .ct-line-num {
