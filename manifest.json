@@ -1,7 +1,7 @@
 {
   "manifest_version": 2,
   "name": "GitLab Commit Tree",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Affiche une arborescence des fichiers modifiés dans les commits, comparaisons et historiques de branches GitLab",
   "icons": {
     "48": "icon-48.png",
