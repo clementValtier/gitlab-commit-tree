@@ -6,6 +6,7 @@
 
 import { icons, cssClasses, getFileIcon } from './commit-tree-config.js';
 import { createElement, scrollToFileInCurrentPage, navigateToFile, debounce } from './commit-tree-utils.js';
+import { highlightCode } from './commit-tree-highlight.js';
 
 /** @type {boolean} Flag to prevent cascade opening during programmatic operations */
 let isProgrammaticToggle = false;
@@ -394,7 +395,7 @@ function showFileInPreview(previewPanel, fileNode) {
     const previewContent = createElement('div', { className: 'ct-preview-content' });
 
     if (fileNode.diff_content) {
-        renderDiff(previewContent, fileNode.diff_content);
+        renderDiff(previewContent, fileNode.diff_content, fileNode.path);
     } else {
         renderEmptyDiffWithLoadButton(previewContent, fileNode, previewPanel);
     }
@@ -509,7 +510,7 @@ export function toggleDiffView(item, fileNode) {
     }
 
     diffContainer = createElement('div', { className: cssClasses.diffContainer });
-    renderDiff(diffContainer, fileNode.diff_content);
+    renderDiff(diffContainer, fileNode.diff_content, fileNode.path);
     item.parentNode.insertBefore(diffContainer, item.nextSibling);
 }
 
@@ -518,12 +519,13 @@ export function toggleDiffView(item, fileNode) {
  * @param {HTMLElement} container - Container element
  * @param {string} diffContent - The diff content string
  */
-export function renderDiff(container, diffContent) {
+export function renderDiff(container, diffContent, filePath) {
     if (!diffContent) {
         container.innerHTML = '<div class="ct-diff-empty"><span class="ct-diff-empty-text">Aucune différence disponible</span></div>';
         return;
     }
 
+    const fileExt = filePath.split('.').pop()?.toLowerCase() || '';
     const lines = diffContent.split('\n');
     const table = createElement('div', { className: 'ct-diff-table' });
 
@@ -578,15 +580,15 @@ export function renderDiff(container, diffContent) {
 
             const changes = Diff.diffWords(oldContent, newContent);
 
-            renderModifiedLine(table, 'removed', oldNum, '', changes, true);
-            renderModifiedLine(table, 'added', '', newNum, changes, false);
+            renderModifiedLine(table, 'removed', oldNum, '', changes, true, fileExt);
+            renderModifiedLine(table, 'added', '', newNum, changes, false, fileExt);
 
             i++;
             continue;
         }
 
         // Lignes normales (context, added, removed seuls)
-        renderNormalLine(table, line, oldLineNum, newLineNum);
+        renderNormalLine(table, line, oldLineNum, newLineNum, fileExt);
         
         if (line.startsWith('+')) {
             newLineNum++;
@@ -602,7 +604,7 @@ export function renderDiff(container, diffContent) {
 }
 
 // Fonction helper pour les lignes modifiées avec surlignage
-function renderModifiedLine(table, type, oldNum, newNum, changes, isRemoved) {
+function renderModifiedLine(table, type, oldNum, newNum, changes, isRemoved, fileExt) {
     const lineRow = createElement('div', { className: `ct-diff-line ct-diff-line-${type}` });
     const oldNumCell = createElement('span', { className: 'ct-line-num ct-line-num-old' }, oldNum.toString());
     const newNumCell = createElement('span', { className: 'ct-line-num ct-line-num-new' }, newNum.toString());
@@ -616,7 +618,9 @@ function renderModifiedLine(table, type, oldNum, newNum, changes, isRemoved) {
             const span = createElement('span', { className: 'ct-word-added' }, part.value);
             contentCell.appendChild(span);
         } else if (!part.added && !part.removed) {
-            contentCell.appendChild(document.createTextNode(part.value));
+            const span = createElement('span');
+            span.innerHTML = highlightCode(part.value, fileExt);
+            contentCell.appendChild(span);
         }
     });
 
@@ -627,7 +631,7 @@ function renderModifiedLine(table, type, oldNum, newNum, changes, isRemoved) {
 }
 
 // Fonction helper pour les lignes normales
-function renderNormalLine(table, line, oldLineNum, newLineNum) {
+function renderNormalLine(table, line, oldLineNum, newLineNum, fileExt) {
     let lineType = 'context';
     let oldNum = '';
     let newNum = '';
@@ -658,7 +662,7 @@ function renderNormalLine(table, line, oldLineNum, newLineNum) {
     if (lineContent === '') {
         contentCell.innerHTML = ' ';
     } else {
-        contentCell.textContent = lineContent;
+        contentCell.innerHTML = highlightCode(lineContent, fileExt);
     }
 
     lineRow.appendChild(oldNumCell);
