@@ -20,9 +20,13 @@
     --ct-status-modified: #c17d10;
     --ct-status-deleted: #dd2b0e;
     --ct-status-renamed: #6666c4;
-    --ct-diff-added-bg: #ddfbe6;
+    --ct-diff-added-num-bg: #CCFFD8;
+    --ct-diff-added-line-bg: #E6FFEC;
+    --ct-diff-added-word-bg: #ABF2BC;
     --ct-diff-added-text: #24663b;
-    --ct-diff-removed-bg: #f9d7dc;
+    --ct-diff-removed-num-bg: #FFD7D5;
+    --ct-diff-removed-line-bg: #FFEBE9;
+    --ct-diff-removed-word-bg: #FFAEB3;
     --ct-diff-removed-text: #ae1800;
     --ct-button-bg: #fff;
     --ct-button-bg-hover: #f0f0f0;
@@ -47,9 +51,13 @@
     --ct-status-modified: #e4a03d;
     --ct-status-deleted: #f99;
     --ct-status-renamed: #a3a3e0;
-    --ct-diff-added-bg: #0e4329;
+    --ct-diff-added-num-bg: #0e4329;
+    --ct-diff-added-line-bg: #0a3622;
+    --ct-diff-added-word-bg: #2da160;
     --ct-diff-added-text: #91d4a8;
-    --ct-diff-removed-bg: #5c1a1a;
+    --ct-diff-removed-num-bg: #5c1a1a;
+    --ct-diff-removed-line-bg: #4d1f1f;
+    --ct-diff-removed-word-bg: #c73838;
     --ct-diff-removed-text: #f99;
     --ct-button-bg: #2d2d2d;
     --ct-button-bg-hover: #3d3d3d;
@@ -616,23 +624,23 @@
 
 /* Diff line colors - added */
 .ct-diff-line-added .ct-line-num {
-    background-color: #c8f0d5;
+    background-color: var(--ct-diff-added-num-bg);
     color: var(--ct-status-added);
 }
 
 .ct-diff-line-added .ct-line-content {
-    background-color: var(--ct-diff-added-bg);
+    background-color: var(--ct-diff-added-line-bg);
     color: var(--ct-diff-added-text);
 }
 
 /* Diff line colors - removed */
 .ct-diff-line-removed .ct-line-num {
-    background-color: #f5c6cb;
+    background-color: var(--ct-diff-removed-num-bg);
     color: var(--ct-status-deleted);
 }
 
 .ct-diff-line-removed .ct-line-content {
-    background-color: var(--ct-diff-removed-bg);
+    background-color: var(--ct-diff-removed-line-bg);
     color: var(--ct-diff-removed-text);
 }
 
@@ -643,39 +651,28 @@
 
 /* Word-level highlighting for modified lines */
 .ct-word-added {
-    background-color: #91d4a8;
+    background-color: var(--ct-diff-added-word-bg);
     color: #0e4329;
-    font-weight: 600;
+    font-weight: 500;
 }
 
 .ct-word-removed {
-    background-color: #f99;
-    color: #5c1a1a;
-    font-weight: 600;
+    background-color: var(--ct-diff-removed-word-bg);
+    color: #ae1800;
+    font-weight: 500;
 }
 
 /* Dark mode word-level highlighting */
 .gl-dark .ct-word-added,
 [data-theme="dark"] .ct-word-added {
-    background-color: #2da160;
+    background-color: var(--ct-diff-added-word-bg);
     color: #ddfbe6;
 }
 
 .gl-dark .ct-word-removed,
 [data-theme="dark"] .ct-word-removed {
-    background-color: #c73838;
+    background-color: var(--ct-diff-removed-word-bg);
     color: #f9d7dc;
-}
-
-/* Dark mode adjustments */
-.gl-dark .ct-diff-line-added .ct-line-num,
-[data-theme="dark"] .ct-diff-line-added .ct-line-num {
-    background-color: #1a4d2e;
-}
-
-.gl-dark .ct-diff-line-removed .ct-line-num,
-[data-theme="dark"] .ct-diff-line-removed .ct-line-num {
-    background-color: #4d1f1f;
 }
 
 /* ============================================
@@ -734,7 +731,7 @@
     padding: 16px;
     font-size: 13px;
     color: var(--ct-status-deleted);
-    background-color: var(--ct-diff-removed-bg);
+    background-color: var(--ct-diff-removed-line-bg);
     border-radius: var(--ct-border-radius);
     margin: 8px 16px;
 }

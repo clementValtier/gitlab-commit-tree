@@ -560,25 +560,28 @@ export function renderDiff(container, diffContent) {
             continue;
         }
 
-        // Détecter une paire - / + (modification)
+        // Détecter une paire - / + unique
         const nextLine = lines[i + 1];
-        if (line.startsWith('-') && nextLine && nextLine.startsWith('+') && typeof Diff !== 'undefined') {
-            // Paire de modification détectée
+        const lineAfterNext = lines[i + 2];
+        
+        // Vérifier que c'est une ligne - suivie d'une ligne +
+        // et que la ligne suivante n'est pas un autre - ou +
+        if (line.startsWith('-') && !line.startsWith('---') &&
+            nextLine && nextLine.startsWith('+') && !nextLine.startsWith('+++') &&
+            (!lineAfterNext || (!lineAfterNext.startsWith('-') && !lineAfterNext.startsWith('+'))) &&
+            typeof Diff !== 'undefined') {
+            
             const oldContent = line.substring(1);
             const newContent = nextLine.substring(1);
             const oldNum = oldLineNum++;
             const newNum = newLineNum++;
 
-            // Calculer le diff mot par mot
             const changes = Diff.diffWords(oldContent, newContent);
 
-            // Ligne removed avec surlignage
             renderModifiedLine(table, 'removed', oldNum, '', changes, true);
-            
-            // Ligne added avec surlignage
             renderModifiedLine(table, 'added', '', newNum, changes, false);
 
-            i++; // Sauter la ligne + car déjà traitée
+            i++;
             continue;
         }
 
