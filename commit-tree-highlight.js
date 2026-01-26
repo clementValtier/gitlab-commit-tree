@@ -632,12 +632,41 @@ function registerOmnisLanguage() {
                 built_in: PROPERTIES.concat(FUNCTIONS)
             },
             contains: [
-                hljs.COMMENT('#', '$'),
                 {
                     className: 'comment',
-                    begin: ';', end: '$'
+                    begin: '^\\s*[#;]',
+                    end: '$',
+                    relevance: 5
+                },
+                {
+                    className: 'comment',
+                    begin: '##',
+                    end: '$',
+                    relevance: 5
+                },
+                {
+                    begin: '\\bSta:\\s*',
+                    end: '$',
+                    subLanguage: 'sql',
+                    contains: [
+                        {
+                            className: 'variable',
+                            begin: '\\[[^\\]]+\\]'
+                        }
+                    ]
+                },
+                {
+                    begin: '\\bText:\\s*',
+                    end: '$',
+                    className: 'string',
+                    relevance: 10
                 },
                 hljs.QUOTE_STRING_MODE,
+                {
+                    className: 'constant',
+                    begin: '\\b#[A-Z][a-zA-Z0-9_]*\\b',
+                    relevance: 10
+                },
                 {
                     className: 'number',
                     begin: '\\b0x[0-9a-fA-F]+\\b'
