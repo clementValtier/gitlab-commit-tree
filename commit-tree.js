@@ -7,7 +7,7 @@
 (function() {
     'use strict';
     
-    let icons, cssClasses, getPageType, extractProjectAndCommitInfo, waitForElement, createElement, findCommitElements, extractCommitShaFromElement, fetchAllFilesWithPagination, processFilesFromApiResponse, buildFileTree, createTreeContainer, renderTree, expandAllFolders, collapseAllFolders, setupSearch, createLoadingIndicator, createErrorMessage, setProjectContext;
+    let icons, cssClasses, getPageType, extractProjectAndCommitInfo, waitForElement, createElement, findCommitElements, extractCommitShaFromElement, fetchAllFilesWithPagination, processFilesFromApiResponse, buildFileTree, createTreeContainer, renderTree, expandAllFolders, collapseAllFolders, setupSearch, setupViewModeToggle, createLoadingIndicator, createErrorMessage, setProjectContext;
 
     /**
      * Charge les modules nécessaires
@@ -24,7 +24,7 @@
             ({ icons, cssClasses } = config);
             ({ getPageType, extractProjectAndCommitInfo, waitForElement, createElement, findCommitElements, extractCommitShaFromElement } = utils);
             ({ fetchAllFilesWithPagination, processFilesFromApiResponse, buildFileTree } = api);
-            ({ createTreeContainer, renderTree, expandAllFolders, collapseAllFolders, setupSearch, createLoadingIndicator, createErrorMessage, setProjectContext } = renderer);
+            ({ createTreeContainer, renderTree, expandAllFolders, collapseAllFolders, setupSearch, setupViewModeToggle, createLoadingIndicator, createErrorMessage, setProjectContext } = renderer);
         } catch (error) {
             console.error('Erreur lors du chargement des modules:', error);
             throw error;
@@ -105,12 +105,15 @@
                     treeView,
                     previewPanel,
                     expandAllBtn,
-                    collapseAllBtn
+                    collapseAllBtn,
+                    viewDiffBtn,
+                    viewFullBtn
                 } = createTreeContainer(`Vue en arborescence (${pageTypeTitle})`, fileData.length);
 
                 wrapper.appendChild(container);
                 renderTree(treeView, fileTree, 0, '', null, previewPanel);
                 setupSearch(searchInput, treeView, fileTree, null, previewPanel);
+                setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel);
 
                 expandAllBtn.addEventListener('click', () => expandAllFolders(treeView));
                 collapseAllBtn.addEventListener('click', () => collapseAllFolders(treeView));
@@ -256,12 +259,15 @@
                 treeView,
                 previewPanel,
                 expandAllBtn,
-                collapseAllBtn
+                collapseAllBtn,
+                viewDiffBtn,
+                viewFullBtn
             } = createTreeContainer(`Commit ${commitSha.substring(0, 8)}`, fileData.length);
 
             treeContainer.appendChild(container);
             renderTree(treeView, fileTree, 0, '', commitSha, previewPanel);
             setupSearch(searchInput, treeView, fileTree, commitSha, previewPanel);
+            setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel);
 
             expandAllBtn.addEventListener('click', () => expandAllFolders(treeView));
             collapseAllBtn.addEventListener('click', () => collapseAllFolders(treeView));

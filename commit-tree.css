@@ -798,6 +798,78 @@
 }
 
 /* ============================================
+   View mode toggle buttons in toolbar
+   ============================================ */
+
+.ct-view-mode-group {
+    margin-left: auto;
+}
+
+.ct-button-group .ct-btn-icon.ct-view-mode-active {
+    background: #0969da;
+    color: white;
+    border-color: #0969da;
+}
+
+.ct-button-group .ct-btn-icon.ct-view-mode-active:hover {
+    background: #0860ca;
+}
+
+/* ============================================
+   Full file view container
+   ============================================ */
+.ct-full-file-container {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--ct-font-mono);
+    font-size: 12px;
+    line-height: 20px;
+}
+
+.ct-full-file-line {
+    display: table-row;
+}
+
+.ct-full-file-line:hover .ct-full-file-line-num,
+.ct-full-file-line:hover .ct-line-content {
+    background-color: var(--ct-bg-subtle);
+}
+
+.ct-full-file-line-num {
+    display: table-cell;
+    width: 50px;
+    min-width: 50px;
+    padding: 0 8px;
+    text-align: right;
+    color: var(--ct-text-subtle);
+    background-color: var(--ct-bg-subtle);
+    user-select: none;
+    font-size: 11px;
+    vertical-align: top;
+    line-height: 20px;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    border-right: 1px solid var(--ct-border-color);
+}
+
+.ct-full-file-line .ct-line-content {
+    display: table-cell;
+    padding: 0 12px;
+    white-space: pre;
+    vertical-align: top;
+    line-height: 20px;
+    width: 100%;
+    background-color: var(--ct-bg-primary);
+    color: var(--ct-text-default);
+}
+
+.ct-full-file-line .ct-line-content:empty::before {
+    content: ' ';
+}
+
+/* ============================================
    Responsive Adjustments
    ============================================ */
 @media (max-width: 768px) {

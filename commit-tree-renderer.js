@@ -17,6 +17,9 @@ let currentProjectInfo = null;
 /** @type {string|null} Current specific commit SHA */
 let currentCommitSha = null;
 
+/** @type {string} Current view mode ('diff' or 'full') */
+let currentViewMode = 'diff';
+
 /**
  * Sets the project context for API calls
  * @param {Object} projectInfo - Project information
@@ -38,7 +41,9 @@ export function setProjectContext(projectInfo, commitSha = null) {
  *   treeView: HTMLElement,
  *   previewPanel: HTMLElement,
  *   expandAllBtn: HTMLElement,
- *   collapseAllBtn: HTMLElement
+ *   collapseAllBtn: HTMLElement,
+ *   viewDiffBtn: HTMLElement,
+ *   viewFullBtn: HTMLElement
  * }} Created elements
  */
 export function createTreeContainer(title, fileCount) {
@@ -76,8 +81,24 @@ export function createTreeContainer(title, fileCount) {
     buttonGroup.appendChild(expandAllBtn);
     buttonGroup.appendChild(collapseAllBtn);
 
+    const viewModeGroup = createElement('div', { className: 'ct-button-group ct-view-mode-group' });
+
+    const viewDiffBtn = createElement('button', {
+        className: `${cssClasses.button} ct-btn-icon ${cssClasses.viewModeActive}`,
+        title: 'Mode différences'
+    }, icons.viewDiff);
+
+    const viewFullBtn = createElement('button', {
+        className: `${cssClasses.button} ct-btn-icon`,
+        title: 'Mode fichier complet'
+    }, icons.viewFile);
+
+    viewModeGroup.appendChild(viewDiffBtn);
+    viewModeGroup.appendChild(viewFullBtn);
+
     toolbar.appendChild(searchBox);
     toolbar.appendChild(buttonGroup);
+    toolbar.appendChild(viewModeGroup);
 
     const splitView = createElement('div', { className: 'ct-split-view' });
 
@@ -104,7 +125,9 @@ export function createTreeContainer(title, fileCount) {
         treeView,
         previewPanel,
         expandAllBtn,
-        collapseAllBtn
+        collapseAllBtn,
+        viewDiffBtn,
+        viewFullBtn
     };
 }
 
@@ -330,7 +353,7 @@ function setupFileClickHandlers(item, nameElement, child, specificCommitSha, pre
 
     content.addEventListener('click', () => {
         if (previewPanel) {
-            showFileInPreview(previewPanel, child);
+            showFileInPreview(previewPanel, child, currentViewMode);
             
             const treeContainer = item.closest(`.${cssClasses.tree}`);
             if (treeContainer) {
@@ -354,9 +377,11 @@ function setupFileClickHandlers(item, nameElement, child, specificCommitSha, pre
  * Shows file diff in the preview panel
  * @param {HTMLElement} previewPanel - Preview panel element
  * @param {Object} fileNode - File node data
+ * @param {string} mode - Display mode ('diff' or 'full')
  */
-function showFileInPreview(previewPanel, fileNode) {
+function showFileInPreview(previewPanel, fileNode, mode = 'diff') {
     previewPanel.innerHTML = '';
+    previewPanel._currentFileNode = fileNode;
 
     const previewHeader = createElement('div', { className: 'ct-preview-header' });
     
@@ -394,10 +419,14 @@ function showFileInPreview(previewPanel, fileNode) {
 
     const previewContent = createElement('div', { className: 'ct-preview-content' });
 
-    if (fileNode.diff_content) {
-        renderDiff(previewContent, fileNode.diff_content, fileNode.path);
+    if (mode === 'full') {
+        renderFullFileContent(previewContent, fileNode);
     } else {
-        renderEmptyDiffWithLoadButton(previewContent, fileNode, previewPanel);
+        if (fileNode.diff_content) {
+            renderDiff(previewContent, fileNode.diff_content, fileNode.path);
+        } else {
+            renderEmptyDiffWithLoadButton(previewContent, fileNode, previewPanel);
+        }
     }
 
     previewPanel.appendChild(previewHeader);
@@ -731,6 +760,42 @@ export function setupSearch(searchInput, treeView, fileTree, specificCommitSha, 
 }
 
 /**
+ * Sets up the view mode toggle buttons
+ * @param {HTMLElement} viewDiffBtn - Diff mode button
+ * @param {HTMLElement} viewFullBtn - Full file mode button
+ * @param {HTMLElement} previewPanel - Preview panel element
+ */
+export function setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel) {
+    viewDiffBtn.addEventListener('click', () => {
+        currentViewMode = 'diff';
+        viewDiffBtn.classList.add(cssClasses.viewModeActive);
+        viewFullBtn.classList.remove(cssClasses.viewModeActive);
+        
+        const selectedFile = previewPanel.querySelector('.ct-preview-header');
+        if (selectedFile) {
+            const fileNode = previewPanel._currentFileNode;
+            if (fileNode) {
+                showFileInPreview(previewPanel, fileNode, 'diff');
+            }
+        }
+    });
+
+    viewFullBtn.addEventListener('click', () => {
+        currentViewMode = 'full';
+        viewFullBtn.classList.add(cssClasses.viewModeActive);
+        viewDiffBtn.classList.remove(cssClasses.viewModeActive);
+        
+        const selectedFile = previewPanel.querySelector('.ct-preview-header');
+        if (selectedFile) {
+            const fileNode = previewPanel._currentFileNode;
+            if (fileNode) {
+                showFileInPreview(previewPanel, fileNode, 'full');
+            }
+        }
+    });
+}
+
+/**
  * Checks if a filename matches a glob pattern
  * @param {string} filename - Filename to check
  * @param {string} pattern - Glob pattern (e.g., "*.vue")
@@ -773,6 +838,60 @@ function hasMatchingChildren(node, filter) {
         }
         return hasMatchingChildren(child, filter);
     });
+}
+
+/**
+ * Renders the full file content (without diff)
+ * @param {HTMLElement} container - Container element
+ * @param {Object} fileNode - File node data
+ */
+async function renderFullFileContent(container, fileNode) {
+    if (!currentProjectInfo) {
+        container.innerHTML = '<div class="ct-diff-empty">Contexte du projet non disponible.</div>';
+        return;
+    }
+
+    const loading = createElement('div', { className: cssClasses.loading }, 'Chargement du fichier...');
+    container.appendChild(loading);
+
+    try {
+        const ref = currentCommitSha || currentProjectInfo.commitSha || currentProjectInfo.sourceBranch || currentProjectInfo.branchName || 'main';
+        
+        const { fetchFileContent } = await import(browser.runtime.getURL('commit-tree-api.js'));
+        const fileData = await fetchFileContent(currentProjectInfo, fileNode.path, ref);
+        
+        loading.remove();
+
+        const fileExt = fileNode.name.split('.').pop()?.toLowerCase() || '';
+        const lines = fileData.content.split('\n');
+
+        const table = createElement('div', { className: cssClasses.fullFileContainer });
+
+        lines.forEach((line, index) => {
+            const lineNum = index + 1;
+            const lineRow = createElement('div', { className: cssClasses.fullFileLine });
+            const lineNumCell = createElement('span', { className: cssClasses.fullFileLineNum }, lineNum.toString());
+            const contentCell = createElement('span', { className: 'ct-line-content' });
+
+            if (line === '') {
+                contentCell.innerHTML = ' ';
+            } else {
+                contentCell.innerHTML = highlightCode(line, fileExt);
+            }
+
+            lineRow.appendChild(lineNumCell);
+            lineRow.appendChild(contentCell);
+            table.appendChild(lineRow);
+        });
+
+        container.appendChild(table);
+
+    } catch (error) {
+        loading.remove();
+        const errorDiv = createElement('div', { className: 'ct-diff-empty ct-diff-error' });
+        errorDiv.textContent = `Erreur lors du chargement du fichier: ${error.message}`;
+        container.appendChild(errorDiv);
+    }
 }
 
 /**

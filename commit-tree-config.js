@@ -22,7 +22,9 @@ export const icons = {
     search: `<svg class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Zm-.393 4.168a5 5 0 1 1 1.06-1.06l2.613 2.612a.75.75 0 1 1-1.06 1.06l-2.613-2.612Z"/></svg>`,
     close: `<svg style="width: 16px;height: 16px;" class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"/></svg>`,
     expandAll: `<svg class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 1.75a.75.75 0 0 1 .75.75v4.69l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3 3a.75.75 0 0 1-1.06 0l-3-3a.75.75 0 0 1 1.06-1.06l1.72 1.72V2.5A.75.75 0 0 1 8 1.75Zm-5.25 9.5a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Z"/></svg>`,
-    collapseAll: `<svg class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 9.25a.75.75 0 0 1-.75-.75V3.81L5.53 5.53a.75.75 0 0 1-1.06-1.06l3-3a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1-1.06 1.06L8.75 3.81V8.5a.75.75 0 0 1-.75.75Zm-5.25 2a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Z"/></svg>`
+    collapseAll: `<svg class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 9.25a.75.75 0 0 1-.75-.75V3.81L5.53 5.53a.75.75 0 0 1-1.06-1.06l3-3a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1-1.06 1.06L8.75 3.81V8.5a.75.75 0 0 1-.75.75Zm-5.25 2a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Z"/></svg>`,
+    viewDiff: `<svg class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.75 2A1.75 1.75 0 0 0 2 3.75v8.5c0 .966.784 1.75 1.75 1.75h8.5A1.75 1.75 0 0 0 14 12.25v-8.5A1.75 1.75 0 0 0 12.25 2h-8.5ZM3.5 3.75a.25.25 0 0 1 .25-.25h8.5a.25.25 0 0 1 .25.25v8.5a.25.25 0 0 1-.25.25h-8.5a.25.25 0 0 1-.25-.25v-8.5ZM8 5.75a.75.75 0 0 1 .75.75v3a.75.75 0 0 1-1.5 0v-3A.75.75 0 0 1 8 5.75ZM5.25 8a.75.75 0 0 0 0 1.5h5.5a.75.75 0 0 0 0-1.5h-5.5Z"/></svg>`,
+    viewFile: `<svg class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M2.75 1A1.75 1.75 0 0 0 1 2.75v10.5c0 .966.784 1.75 1.75 1.75h10.5A1.75 1.75 0 0 0 15 13.25V5L11 1H2.75Zm-.25 1.75a.25.25 0 0 1 .25-.25h7.25v3.5c0 .414.336.75.75.75h2.75v6.25a.25.25 0 0 1-.25.25H2.75a.25.25 0 0 1-.25-.25V2.75Z"/></svg>`
 };
 
 /**
@@ -134,7 +136,13 @@ export const cssClasses = {
     loading: 'ct-loading',
     error: 'ct-error',
     commitTreeButton: 'ct-commit-btn',
-    commitTreeContainer: 'ct-commit-container'
+    commitTreeContainer: 'ct-commit-container',
+    viewModeToggle: 'ct-view-mode-toggle',
+    viewModeButton: 'ct-view-mode-btn',
+    viewModeActive: 'ct-view-mode-active',
+    fullFileContainer: 'ct-full-file-container',
+    fullFileLine: 'ct-full-file-line',
+    fullFileLineNum: 'ct-full-file-line-num'
 };
 
 /**

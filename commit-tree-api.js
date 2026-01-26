@@ -273,6 +273,50 @@ function collapseSingleChildFolders(node) {
 }
 
 /**
+ * Fetches the full content of a file from the GitLab API
+ * @param {Object} projectInfo - Project information object
+ * @param {string} filePath - Path of the file to fetch
+ * @param {string} ref - Git reference (commit SHA or branch name)
+ * @returns {Promise<{content: string, encoding: string, size: number, file_name: string}>}
+ * @throws {Error} When the API request fails
+ */
+export async function fetchFileContent(projectInfo, filePath, ref) {
+    const gitlabBaseUrl = window.location.origin;
+    const encodedProjectPath = encodeURIComponent(projectInfo.projectPath);
+    const encodedFilePath = encodeURIComponent(filePath);
+    const apiUrl = `${gitlabBaseUrl}/api/v4/projects/${encodedProjectPath}/repository/files/${encodedFilePath}?ref=${encodeURIComponent(ref)}`;
+
+    const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: { 'Accept': 'application/json' }
+    });
+
+    if (!response.ok) {
+        if (response.status === 404) {
+            throw new Error('File not found or deleted');
+        } else if (response.status === 413) {
+            throw new Error('File too large');
+        }
+        throw new Error(`API error (${response.status}): ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    
+    let decodedContent = data.content;
+    if (data.encoding === 'base64') {
+        const blob = await fetch(`data:application/octet-stream;base64,${data.content}`).then(r => r.blob());
+        decodedContent = await blob.text();
+    }
+
+    return {
+        content: decodedContent,
+        encoding: data.encoding,
+        size: data.size,
+        file_name: data.file_name
+    };
+}
+
+/**
  * Parses addition/deletion statistics from diff content
  * @param {string} diffContent - The diff content string
  * @returns {{additions: number, deletions: number}} Line statistics
