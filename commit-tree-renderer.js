@@ -612,10 +612,14 @@ function renderModifiedLine(table, type, oldNum, newNum, changes, isRemoved, fil
 
     changes.forEach(part => {
         if (isRemoved && part.removed) {
-            const span = createElement('span', { className: 'ct-word-removed' }, part.value);
+            const span = document.createElement('span');
+            span.className = 'ct-word-removed';
+            span.textContent = part.value;
             contentCell.appendChild(span);
         } else if (!isRemoved && part.added) {
-            const span = createElement('span', { className: 'ct-word-added' }, part.value);
+            const span = document.createElement('span');
+            span.className = 'ct-word-added';
+            span.textContent = part.value;
             contentCell.appendChild(span);
         } else if (!part.added && !part.removed) {
             const span = createElement('span');
