@@ -7,6 +7,7 @@
 import { icons, cssClasses, getFileIcon } from './commit-tree-config.js';
 import { createElement, scrollToFileInCurrentPage, navigateToFile, debounce } from './commit-tree-utils.js';
 import { highlightCode } from './commit-tree-highlight.js';
+import { fetchFileContent } from './commit-tree-api.js';
 
 /** @type {boolean} Flag to prevent cascade opening during programmatic operations */
 let isProgrammaticToggle = false;
@@ -759,6 +760,9 @@ export function setupSearch(searchInput, treeView, fileTree, specificCommitSha, 
     });
 }
 
+let viewDiffListener = null;
+let viewFullListener = null;
+
 /**
  * Sets up the view mode toggle buttons
  * @param {HTMLElement} viewDiffBtn - Diff mode button
@@ -766,7 +770,14 @@ export function setupSearch(searchInput, treeView, fileTree, specificCommitSha, 
  * @param {HTMLElement} previewPanel - Preview panel element
  */
 export function setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel) {
-    viewDiffBtn.addEventListener('click', () => {
+    if (viewDiffListener) {
+        viewDiffBtn.removeEventListener('click', viewDiffListener);
+    }
+    if (viewFullListener) {
+        viewFullBtn.removeEventListener('click', viewFullListener);
+    }
+
+    viewDiffListener = () => {
         currentViewMode = 'diff';
         viewDiffBtn.classList.add(cssClasses.viewModeActive);
         viewFullBtn.classList.remove(cssClasses.viewModeActive);
@@ -778,9 +789,9 @@ export function setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel) {
                 showFileInPreview(previewPanel, fileNode, 'diff');
             }
         }
-    });
-
-    viewFullBtn.addEventListener('click', () => {
+    };
+    
+    viewFullListener = () => {
         currentViewMode = 'full';
         viewFullBtn.classList.add(cssClasses.viewModeActive);
         viewDiffBtn.classList.remove(cssClasses.viewModeActive);
@@ -792,7 +803,10 @@ export function setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel) {
                 showFileInPreview(previewPanel, fileNode, 'full');
             }
         }
-    });
+    };
+
+    viewDiffBtn.addEventListener('click', viewDiffListener);
+    viewFullBtn.addEventListener('click', viewFullListener);
 }
 
 /**
@@ -857,7 +871,6 @@ async function renderFullFileContent(container, fileNode) {
     try {
         const ref = currentCommitSha || currentProjectInfo.commitSha || currentProjectInfo.sourceBranch || currentProjectInfo.branchName || 'main';
         
-        const { fetchFileContent } = await import(browser.runtime.getURL('commit-tree-api.js'));
         const fileData = await fetchFileContent(currentProjectInfo, fileNode.path, ref);
         
         loading.remove();
