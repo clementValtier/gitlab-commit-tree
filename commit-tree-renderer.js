@@ -316,12 +316,12 @@ function setupFolderToggle(item, childContainer, child) {
         }
     };
 
-    item.chevron.addEventListener('click', (e) => {
+    item.chevron.onclick = (e) => {
         e.stopPropagation();
         toggleFolder();
-    });
+    };
 
-    item.element.querySelector(`.${cssClasses.treeItemContent}`).addEventListener('click', toggleFolder);
+    item.element.querySelector(`.${cssClasses.treeItemContent}`).onclick = toggleFolder;
 }
 
 /**
@@ -352,7 +352,7 @@ function autoExpandSingleChild(childContainer, child) {
 function setupFileClickHandlers(item, nameElement, child, specificCommitSha, previewPanel) {
     const content = item.querySelector(`.${cssClasses.treeItemContent}`);
 
-    content.addEventListener('click', () => {
+    content.onclick = () => {
         if (previewPanel) {
             showFileInPreview(previewPanel, child, currentViewMode);
             
@@ -366,12 +366,12 @@ function setupFileClickHandlers(item, nameElement, child, specificCommitSha, pre
         } else if (!scrollToFileInCurrentPage(child.path)) {
             navigateToFile(child.path, null, specificCommitSha);
         }
-    });
+    };
 
-    content.addEventListener('contextmenu', (e) => {
+    content.oncontextmenu = (e) => {
         e.preventDefault();
         showContextMenu(e, child, item, specificCommitSha, previewPanel);
-    });
+    };
 }
 
 /**
@@ -452,9 +452,9 @@ function renderEmptyDiffWithLoadButton(container, fileNode, previewPanel) {
             className: `${cssClasses.button} ct-diff-load-btn`
         }, `${icons.file} <span>Ouvrir le fichier</span>`);
 
-        viewFileBtn.addEventListener('click', () => {
+        viewFileBtn.onclick = () => {
             navigateToFile(fileNode.path, currentProjectInfo, currentCommitSha);
-        });
+        };
         
         emptyDiv.appendChild(viewFileBtn);
     }
@@ -478,15 +478,15 @@ function showContextMenu(event, child, item, specificCommitSha, previewPanel) {
     });
 
     const viewItem = createElement('div', { className: 'ct-menu-item' }, 'Voir le fichier');
-    viewItem.addEventListener('click', () => {
+    viewItem.onclick = () => {
         navigateToFile(child.path, null, specificCommitSha);
         contextMenu.remove();
-    });
+    };
     contextMenu.appendChild(viewItem);
 
     if (child.diff_content) {
         const diffItem = createElement('div', { className: 'ct-menu-item' }, 'Voir les différences');
-        diffItem.addEventListener('click', () => {
+        diffItem.onclick = () => {
             if (previewPanel) {
                 showFileInPreview(previewPanel, child);
                 const treeContainer = item.closest(`.${cssClasses.tree}`);
@@ -500,7 +500,7 @@ function showContextMenu(event, child, item, specificCommitSha, previewPanel) {
                 toggleDiffView(item, child);
             }
             contextMenu.remove();
-        });
+        };
         contextMenu.appendChild(diffItem);
     }
 
@@ -755,13 +755,10 @@ export function setupSearch(searchInput, treeView, fileTree, specificCommitSha, 
         renderTree(treeView, fileTree, 0, filter, specificCommitSha, previewPanel);
     }, 200);
 
-    searchInput.addEventListener('input', (e) => {
+    searchInput.oninput = (e) => {
         filterTree(e.target.value);
-    });
+    };
 }
-
-let viewDiffListener = null;
-let viewFullListener = null;
 
 /**
  * Sets up the view mode toggle buttons
@@ -770,14 +767,7 @@ let viewFullListener = null;
  * @param {HTMLElement} previewPanel - Preview panel element
  */
 export function setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel) {
-    if (viewDiffListener) {
-        viewDiffBtn.removeEventListener('click', viewDiffListener);
-    }
-    if (viewFullListener) {
-        viewFullBtn.removeEventListener('click', viewFullListener);
-    }
-
-    viewDiffListener = () => {
+    viewDiffBtn.onclick = () => {
         currentViewMode = 'diff';
         viewDiffBtn.classList.add(cssClasses.viewModeActive);
         viewFullBtn.classList.remove(cssClasses.viewModeActive);
@@ -791,7 +781,7 @@ export function setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel) {
         }
     };
     
-    viewFullListener = () => {
+    viewFullBtn.onclick = () => {
         currentViewMode = 'full';
         viewFullBtn.classList.add(cssClasses.viewModeActive);
         viewDiffBtn.classList.remove(cssClasses.viewModeActive);
@@ -804,9 +794,6 @@ export function setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel) {
             }
         }
     };
-
-    viewDiffBtn.addEventListener('click', viewDiffListener);
-    viewFullBtn.addEventListener('click', viewFullListener);
 }
 
 /**
