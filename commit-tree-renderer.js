@@ -149,6 +149,10 @@ export function renderTree(container, node, level = 0, filter = '', specificComm
         return a.name.localeCompare(b.name);
     });
 
+    if (level === 0 && !container._delegationSetup) {
+        setupTreeEventDelegation(container, specificCommitSha, previewPanel);
+    }
+
     nodeArray.forEach(child => {
         const isCollapsible = child.type === 'folder' && Object.keys(child.children).length > 0;
         const fullPath = child.path || child.name;
@@ -179,7 +183,7 @@ export function renderTree(container, node, level = 0, filter = '', specificComm
 
             renderTree(childContainer, child, level + 1, filter, specificCommitSha, previewPanel);
 
-            setupFolderToggle(item, childContainer, child);
+            item.element._childData = child;
 
             if (shouldExpand) {
                 item.element.classList.add(cssClasses.expanded);
@@ -188,6 +192,86 @@ export function renderTree(container, node, level = 0, filter = '', specificComm
             }
         }
     });
+}
+
+/**
+ * Sets up event delegation for the entire tree
+ * @param {HTMLElement} treeContainer - Tree container element
+ * @param {string|null} specificCommitSha - Specific commit SHA
+ * @param {HTMLElement|null} previewPanel - Preview panel element
+ */
+function setupTreeEventDelegation(treeContainer, specificCommitSha, previewPanel) {
+    treeContainer._delegationSetup = true;
+
+    treeContainer.onclick = (e) => {
+        const treeItem = e.target.closest(`.${cssClasses.treeItem}`);
+        if (!treeItem) return;
+
+        const chevron = e.target.closest(`.${cssClasses.treeItemChevron}`);
+        const content = e.target.closest(`.${cssClasses.treeItemContent}`);
+        if (!content) return;
+
+        if (treeItem.classList.contains(cssClasses.folder)) {
+            if (chevron) {
+                e.stopPropagation();
+            }
+            
+            const childContainer = treeItem.nextElementSibling;
+            if (!childContainer || !childContainer.classList.contains(cssClasses.treeChildren)) return;
+
+            const itemChevron = treeItem.querySelector(`.${cssClasses.treeItemChevron}`);
+            const itemIcon = treeItem.querySelector(`.${cssClasses.treeItemIcon}`);
+            const isExpanded = treeItem.classList.contains(cssClasses.expanded);
+
+            if (isExpanded) {
+                treeItem.classList.remove(cssClasses.expanded);
+                itemChevron.innerHTML = icons.chevronRight;
+                itemIcon.innerHTML = icons.folderClosed;
+                childContainer.style.display = 'none';
+            } else {
+                treeItem.classList.add(cssClasses.expanded);
+                itemChevron.innerHTML = icons.chevronDown;
+                itemIcon.innerHTML = icons.folderOpen;
+                childContainer.style.display = 'block';
+
+                if (!isProgrammaticToggle) {
+                    const childData = treeItem._childData;
+                    if (childData) {
+                        autoExpandSingleChild(childContainer, childData);
+                    }
+                }
+            }
+        } else if (treeItem.classList.contains(cssClasses.file)) {
+            const child = treeItem._fileNode;
+            if (!child) return;
+
+            if (previewPanel) {
+                showFileInPreview(previewPanel, child, currentViewMode);
+                
+                treeContainer.querySelectorAll(`.${cssClasses.treeItem}`).forEach(el => {
+                    el.classList.remove('ct-selected');
+                });
+                treeItem.classList.add('ct-selected');
+            } else if (!scrollToFileInCurrentPage(child.path)) {
+                navigateToFile(child.path, null, specificCommitSha);
+            }
+        }
+    };
+
+    treeContainer.oncontextmenu = (e) => {
+        const treeItem = e.target.closest(`.${cssClasses.treeItem}`);
+        if (!treeItem || !treeItem.classList.contains(cssClasses.file)) return;
+
+        const content = e.target.closest(`.${cssClasses.treeItemContent}`);
+        if (!content) return;
+
+        e.preventDefault();
+        
+        const child = treeItem._fileNode;
+        if (!child) return;
+
+        showContextMenu(e, child, treeItem, specificCommitSha, previewPanel);
+    };
 }
 
 /**
@@ -253,7 +337,7 @@ function createTreeItem(child, level, isCollapsible, specificCommitSha, previewP
     item.appendChild(content);
 
     if (child.type === 'file') {
-        setupFileClickHandlers(item, name, child, specificCommitSha, previewPanel);
+        item._fileNode = child;
     }
 
     return { element: item, chevron, icon, name };
@@ -290,41 +374,6 @@ function getStatusShortLabel(status) {
 }
 
 /**
- * Sets up folder toggle functionality
- * @param {{element: HTMLElement, chevron: HTMLElement, icon: HTMLElement}} item - Tree item elements
- * @param {HTMLElement} childContainer - Container for children
- * @param {Object} child - Tree node data
- */
-function setupFolderToggle(item, childContainer, child) {
-    const toggleFolder = () => {
-        const isExpanded = item.element.classList.contains(cssClasses.expanded);
-
-        if (isExpanded) {
-            item.element.classList.remove(cssClasses.expanded);
-            item.chevron.innerHTML = icons.chevronRight;
-            item.icon.innerHTML = icons.folderClosed;
-            childContainer.style.display = 'none';
-        } else {
-            item.element.classList.add(cssClasses.expanded);
-            item.chevron.innerHTML = icons.chevronDown;
-            item.icon.innerHTML = icons.folderOpen;
-            childContainer.style.display = 'block';
-
-            if (!isProgrammaticToggle) {
-                autoExpandSingleChild(childContainer, child);
-            }
-        }
-    };
-
-    item.chevron.onclick = (e) => {
-        e.stopPropagation();
-        toggleFolder();
-    };
-
-    item.element.querySelector(`.${cssClasses.treeItemContent}`).onclick = toggleFolder;
-}
-
-/**
  * Auto-expands single child folders
  * @param {HTMLElement} childContainer - Container for children
  * @param {Object} child - Tree node data
@@ -339,39 +388,6 @@ function autoExpandSingleChild(childContainer, child) {
             }, 10);
         }
     }
-}
-
-/**
- * Sets up click handlers for file items
- * @param {HTMLElement} item - Tree item element
- * @param {HTMLElement} nameElement - Name span element
- * @param {Object} child - Tree node data
- * @param {string|null} specificCommitSha - Specific commit SHA
- * @param {HTMLElement|null} previewPanel - Preview panel element
- */
-function setupFileClickHandlers(item, nameElement, child, specificCommitSha, previewPanel) {
-    const content = item.querySelector(`.${cssClasses.treeItemContent}`);
-
-    content.onclick = () => {
-        if (previewPanel) {
-            showFileInPreview(previewPanel, child, currentViewMode);
-            
-            const treeContainer = item.closest(`.${cssClasses.tree}`);
-            if (treeContainer) {
-                treeContainer.querySelectorAll(`.${cssClasses.treeItem}`).forEach(el => {
-                    el.classList.remove('ct-selected');
-                });
-            }
-            item.classList.add('ct-selected');
-        } else if (!scrollToFileInCurrentPage(child.path)) {
-            navigateToFile(child.path, null, specificCommitSha);
-        }
-    };
-
-    content.oncontextmenu = (e) => {
-        e.preventDefault();
-        showContextMenu(e, child, item, specificCommitSha, previewPanel);
-    };
 }
 
 /**
@@ -752,6 +768,7 @@ export function collapseAllFolders(treeViewElement) {
 export function setupSearch(searchInput, treeView, fileTree, specificCommitSha, previewPanel = null) {
     const filterTree = debounce((filter) => {
         treeView.innerHTML = '';
+        treeView._delegationSetup = false;
         renderTree(treeView, fileTree, 0, filter, specificCommitSha, previewPanel);
     }, 200);
 
