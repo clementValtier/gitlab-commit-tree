@@ -18,9 +18,6 @@ let currentProjectInfo = null;
 /** @type {string|null} Current specific commit SHA */
 let currentCommitSha = null;
 
-/** @type {string} Current view mode ('diff' or 'full') */
-let currentViewMode = 'diff';
-
 /** @type {Map<string, string>} Cache for full file contents */
 const fullFileCache = new Map();
 
@@ -109,6 +106,7 @@ export function createTreeContainer(title, fileCount) {
     const treeView = createElement('div', { className: cssClasses.tree });
 
     const previewPanel = createElement('div', { className: 'ct-preview-panel' });
+    previewPanel._viewMode = 'diff';
     const previewPlaceholder = createElement('div', { className: 'ct-preview-placeholder' }, `
         <span class="ct-preview-icon">${icons.file}</span>
         <span class="ct-preview-text">Sélectionnez un fichier pour voir les modifications</span>
@@ -249,7 +247,7 @@ function setupTreeEventDelegation(treeContainer, specificCommitSha, previewPanel
             if (!child) return;
 
             if (previewPanel) {
-                showFileInPreview(previewPanel, child, currentViewMode);
+                showFileInPreview(previewPanel, child, previewPanel._viewMode || 'diff');
                 
                 treeContainer.querySelectorAll(`.${cssClasses.treeItem}`).forEach(el => {
                     el.classList.remove('ct-selected');
@@ -788,7 +786,7 @@ export function setupSearch(searchInput, treeView, fileTree, specificCommitSha, 
  */
 export function setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel) {
     viewDiffBtn.onclick = () => {
-        currentViewMode = 'diff';
+        previewPanel._viewMode = 'diff';
         viewDiffBtn.classList.add(cssClasses.viewModeActive);
         viewFullBtn.classList.remove(cssClasses.viewModeActive);
         
@@ -802,7 +800,7 @@ export function setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel) {
     };
     
     viewFullBtn.onclick = () => {
-        currentViewMode = 'full';
+        previewPanel._viewMode = 'full';
         viewFullBtn.classList.add(cssClasses.viewModeActive);
         viewDiffBtn.classList.remove(cssClasses.viewModeActive);
         
