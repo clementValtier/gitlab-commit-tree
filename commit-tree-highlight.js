@@ -651,7 +651,7 @@ function registerOmnisLanguage() {
                     contains: [
                         {
                             className: 'variable',
-                            begin: '\\[[^\\]]+\\]'
+                            begin: '@?\\[[^\\]]+\\]'
                         }
                     ]
                 },
