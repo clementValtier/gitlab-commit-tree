@@ -21,6 +21,9 @@ let currentCommitSha = null;
 /** @type {string} Current view mode ('diff' or 'full') */
 let currentViewMode = 'diff';
 
+/** @type {Map<string, string>} Cache for full file contents */
+const fullFileCache = new Map();
+
 /**
  * Sets the project context for API calls
  * @param {Object} projectInfo - Project information
@@ -869,46 +872,52 @@ async function renderFullFileContent(container, fileNode) {
         return;
     }
 
-    const loading = createElement('div', { className: cssClasses.loading }, 'Chargement du fichier...');
-    container.appendChild(loading);
+    const ref = currentCommitSha || currentProjectInfo.commitSha || currentProjectInfo.sourceBranch || currentProjectInfo.branchName || 'main';
+    const cacheKey = `${currentProjectInfo.projectPath}:${fileNode.path}@${ref}`;
+    
+    let fileContent = fullFileCache.get(cacheKey);
+    
+    if (!fileContent) {
+        const loading = createElement('div', { className: cssClasses.loading }, 'Chargement du fichier...');
+        container.appendChild(loading);
 
-    try {
-        const ref = currentCommitSha || currentProjectInfo.commitSha || currentProjectInfo.sourceBranch || currentProjectInfo.branchName || 'main';
-        
-        const fileData = await fetchFileContent(currentProjectInfo, fileNode.path, ref);
-        
-        loading.remove();
-
-        const fileExt = fileNode.name.split('.').pop()?.toLowerCase() || '';
-        const lines = fileData.content.split('\n');
-
-        const table = createElement('div', { className: cssClasses.fullFileContainer });
-
-        lines.forEach((line, index) => {
-            const lineNum = index + 1;
-            const lineRow = createElement('div', { className: cssClasses.fullFileLine });
-            const lineNumCell = createElement('span', { className: cssClasses.fullFileLineNum }, lineNum.toString());
-            const contentCell = createElement('span', { className: 'ct-line-content' });
-
-            if (line === '') {
-                contentCell.innerHTML = ' ';
-            } else {
-                contentCell.innerHTML = highlightCode(line, fileExt);
-            }
-
-            lineRow.appendChild(lineNumCell);
-            lineRow.appendChild(contentCell);
-            table.appendChild(lineRow);
-        });
-
-        container.appendChild(table);
-
-    } catch (error) {
-        loading.remove();
-        const errorDiv = createElement('div', { className: 'ct-diff-empty ct-diff-error' });
-        errorDiv.textContent = `Erreur lors du chargement du fichier: ${error.message}`;
-        container.appendChild(errorDiv);
+        try {
+            const fileData = await fetchFileContent(currentProjectInfo, fileNode.path, ref);
+            fileContent = fileData.content;
+            fullFileCache.set(cacheKey, fileContent);
+            loading.remove();
+        } catch (error) {
+            loading.remove();
+            const errorDiv = createElement('div', { className: 'ct-diff-empty ct-diff-error' });
+            errorDiv.textContent = `Erreur lors du chargement du fichier: ${error.message}`;
+            container.appendChild(errorDiv);
+            return;
+        }
     }
+
+    const fileExt = fileNode.name.split('.').pop()?.toLowerCase() || '';
+    const lines = fileContent.split('\n');
+
+    const table = createElement('div', { className: cssClasses.fullFileContainer });
+
+    lines.forEach((line, index) => {
+        const lineNum = index + 1;
+        const lineRow = createElement('div', { className: cssClasses.fullFileLine });
+        const lineNumCell = createElement('span', { className: cssClasses.fullFileLineNum }, lineNum.toString());
+        const contentCell = createElement('span', { className: 'ct-line-content' });
+
+        if (line === '') {
+            contentCell.innerHTML = ' ';
+        } else {
+            contentCell.innerHTML = highlightCode(line, fileExt);
+        }
+
+        lineRow.appendChild(lineNumCell);
+        lineRow.appendChild(contentCell);
+        table.appendChild(lineRow);
+    });
+
+    container.appendChild(table);
 }
 
 /**
