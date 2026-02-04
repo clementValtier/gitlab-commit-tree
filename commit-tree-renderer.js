@@ -565,6 +565,7 @@ export function toggleDiffView(item, fileNode) {
  * Renders diff content into a container with table structure for proper backgrounds
  * @param {HTMLElement} container - Container element
  * @param {string} diffContent - The diff content string
+ * @param {string} filePath - File path for syntax highlighting logic
  */
 export function renderDiff(container, diffContent, filePath) {
     if (!diffContent) {
@@ -590,7 +591,7 @@ export function renderDiff(container, diffContent, filePath) {
                 oldLineNum = parseInt(match[1], 10);
                 newLineNum = parseInt(match[2], 10);
             }
-            
+
             sectionCount++;
             if (sectionCount > 1) {
                 const separatorRow = createElement('div', { className: 'ct-diff-separator' });
@@ -609,34 +610,43 @@ export function renderDiff(container, diffContent, filePath) {
             continue;
         }
 
-        // Détecter une paire - / + unique
-        const nextLine = lines[i + 1];
-        const lineAfterNext = lines[i + 2];
-        
-        // Vérifier que c'est une ligne - suivie d'une ligne +
-        // et que la ligne suivante n'est pas un autre - ou +
-        if (line.startsWith('-') && !line.startsWith('---') &&
-            nextLine && nextLine.startsWith('+') && !nextLine.startsWith('+++') &&
-            (!lineAfterNext || (!lineAfterNext.startsWith('-') && !lineAfterNext.startsWith('+'))) &&
-            typeof Diff !== 'undefined') {
-            
-            const oldContent = line.substring(1);
-            const newContent = nextLine.substring(1);
-            const oldNum = oldLineNum++;
-            const newNum = newLineNum++;
+        // Détection bloc removed + added de même longueur → word diff par paire
+        if (line.startsWith('-') && typeof Diff !== 'undefined') {
+            let removed = [];
+            let j = i;
+            while (j < lines.length && lines[j].startsWith('-') && !lines[j].startsWith('---')) {
+                removed.push(lines[j]);
+                j++;
+            }
 
-            const changes = Diff.diffWords(oldContent, newContent);
+            let added = [];
+            while (j < lines.length && lines[j].startsWith('+') && !lines[j].startsWith('+++')) {
+                added.push(lines[j]);
+                j++;
+            }
 
-            renderModifiedLine(table, 'removed', oldNum, '', changes, true, fileExt);
-            renderModifiedLine(table, 'added', '', newNum, changes, false, fileExt);
+            if (removed.length > 0 && removed.length === added.length) {
+                // On rend d'abord les lignes removed
+                for (let k = 0; k < removed.length; k++) {
+                    const oldText = removed[k].substring(1);
+                    const changes = Diff.diffWords(oldText, added[k].substring(1));
+                    renderModifiedLine(table, 'removed', oldLineNum++, '', changes, true, fileExt);
+                }
+                // Puis les lignes added
+                for (let k = 0; k < added.length; k++) {
+                    const newText = added[k].substring(1);
+                    const changes = Diff.diffWords(removed[k].substring(1), newText);
+                    renderModifiedLine(table, 'added', '', newLineNum++, changes, false, fileExt);
+                }
 
-            i++;
-            continue;
+                i = j - 1;           // saute tout le bloc
+                continue;
+            }
         }
 
         // Lignes normales (context, added, removed seuls)
         renderNormalLine(table, line, oldLineNum, newLineNum, fileExt);
-        
+
         if (line.startsWith('+')) {
             newLineNum++;
         } else if (line.startsWith('-')) {
