@@ -7,7 +7,7 @@
 import { icons, cssClasses, getFileIcon } from './commit-tree-config.js';
 import { createElement, scrollToFileInCurrentPage, navigateToFile, debounce } from './commit-tree-utils.js';
 import { highlightCode } from './commit-tree-highlight.js';
-import { fetchFileContent } from './commit-tree-api.js';
+import { fetchFileContent, fetchDiffForPath } from './commit-tree-api.js';
 
 /** @type {boolean} Flag to prevent cascade opening during programmatic operations */
 let isProgrammaticToggle = false;
@@ -20,6 +20,9 @@ let currentCommitSha = null;
 
 /** @type {Map<string, string>} Cache for full file contents */
 const fullFileCache = new Map();
+
+/** @type {Map<string, string>} Cache for fetched diff contents */
+const diffContentCache = new Map();
 
 /**
  * Sets the project context for API calls
@@ -440,8 +443,42 @@ function showFileInPreview(previewPanel, fileNode, mode = 'diff') {
     if (mode === 'full') {
         renderFullFileContent(previewContent, fileNode);
     } else {
-        if (fileNode.diff_content) {
+        if (fileNode.has_diff_content && fileNode.diff_content) {
             renderDiff(previewContent, fileNode.diff_content, fileNode.path);
+        } else if (currentProjectInfo && currentProjectInfo.isComparePage) {
+            const cacheKey = `${currentProjectInfo.projectPath}:${fileNode.path}:${currentProjectInfo.targetBranch}...${currentProjectInfo.sourceBranch}`;
+            let cachedDiff = diffContentCache.get(cacheKey);
+            
+            if (cachedDiff) {
+                renderDiff(previewContent, cachedDiff, fileNode.path);
+            } else {
+                const loading = createElement('div', { className: cssClasses.loading }, 'Récupération des différences...');
+                previewContent.appendChild(loading);
+
+                (async () => {
+                    try {
+                        const diffData = await fetchDiffForPath(
+                            currentProjectInfo, 
+                            fileNode.path, 
+                            fileNode.old_path || fileNode.path,
+                            fileNode.status
+                        );
+                        
+                        loading.remove();
+                        
+                        if (diffData && diffData.html) {
+                            const extractedDiff = extractDiffFromGitLabHTML(diffData.html);
+                            diffContentCache.set(cacheKey, extractedDiff);
+                            renderDiff(previewContent, extractedDiff, fileNode.path);
+                        } else {
+                            throw new Error('No diff data received');
+                        }
+                    } catch (error) {
+                        loading.remove();
+                        renderEmptyDiffWithLoadButton(previewContent, fileNode, previewPanel);
+                    }
+                })();
+            }
         } else {
             renderEmptyDiffWithLoadButton(previewContent, fileNode, previewPanel);
         }
@@ -477,6 +514,73 @@ function renderEmptyDiffWithLoadButton(container, fileNode, previewPanel) {
     }
 
     container.appendChild(emptyDiv);
+}
+
+/**
+ * Extracts diff content from GitLab's HTML response
+ * @param {string} html - HTML string from GitLab's diff_for_path endpoint
+ * @returns {string} Extracted diff content in unified diff format
+ */
+function extractDiffFromGitLabHTML(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const lineHolders = doc.querySelectorAll('.line_holder');
+    
+    const sections = [];
+    let currentSection = null;
+    let prevOldNum = null;
+    let prevNewNum = null;
+    
+    lineHolders.forEach((lineHolder) => {
+        const contentCell = lineHolder.querySelector('.line_content');
+        if (!contentCell) return;
+        
+        const text = contentCell.textContent || '';
+        if (text.startsWith('\\ No newline at end of file') || text.startsWith('@@')) return;
+        
+        const getLineNum = (selector) => {
+            const num = lineHolder.querySelector(selector)?.getAttribute('data-linenumber');
+            if (!num || num.trim() === '') return null;
+            const parsed = parseInt(num, 10);
+            return isNaN(parsed) ? null : parsed;
+        };
+        
+        const oldNum = getLineNum('.old_line');
+        const newNum = getLineNum('.new_line');
+        const type = lineHolder.classList.contains('old') ? 'removed' 
+                   : lineHolder.classList.contains('new') ? 'added' 
+                   : 'context';
+        
+        const hasJump = (prevOldNum !== null && oldNum !== null && oldNum > prevOldNum + 1) ||
+                       (prevNewNum !== null && newNum !== null && newNum > prevNewNum + 1);
+        
+        if (hasJump || !currentSection) {
+            if (currentSection) sections.push(currentSection);
+            currentSection = {
+                oldStart: oldNum || 1,
+                newStart: newNum || 1,
+                oldCount: 0,
+                newCount: 0,
+                lines: []
+            };
+        }
+        
+        const prefix = type === 'removed' ? '-' : type === 'added' ? '+' : ' ';
+        currentSection.lines.push(prefix + text);
+        
+        if (type === 'removed') currentSection.oldCount++;
+        else if (type === 'added') currentSection.newCount++;
+        else { currentSection.oldCount++; currentSection.newCount++; }
+        
+        prevOldNum = oldNum;
+        prevNewNum = newNum;
+    });
+    
+    if (currentSection) sections.push(currentSection);
+    if (sections.length === 0) return '';
+    
+    return sections.map(s => 
+        `@@ -${s.oldStart},${s.oldCount} +${s.newStart},${s.newCount} @@\n${s.lines.join('\n')}`
+    ).join('\n');
 }
 
 /**

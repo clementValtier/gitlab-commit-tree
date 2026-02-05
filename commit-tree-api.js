@@ -154,12 +154,15 @@ export function processFilesFromApiResponse(diffData, isComparePage = false) {
                         ? 'renamed'
                         : 'modified';
 
+            const hasDiff = Boolean(diff.diff && diff.diff.trim());
+
             fileData.push({
                 path: diff.new_path || diff.old_path,
                 old_path: diff.old_path,
                 diff_index: index,
                 status: status,
-                diff_content: diff.diff
+                diff_content: diff.diff,
+                has_diff_content: hasDiff
             });
         }
     });
@@ -204,6 +207,7 @@ export function buildFileTree(files) {
                     diff_index: file.diff_index,
                     status: file.status,
                     diff_content: file.diff_content,
+                    has_diff_content: file.has_diff_content,
                     stats: stats
                 };
 
@@ -314,6 +318,60 @@ export async function fetchFileContent(projectInfo, filePath, ref) {
         size: data.size,
         file_name: data.file_name
     };
+}
+
+/**
+ * Fetches diff content for a specific file in compare view using diff_for_path endpoint
+ * @param {Object} projectInfo - Project information object
+ * @param {string} filePath - Path of the file
+ * @param {string} oldPath - Old path of the file (for renamed files)
+ * @returns {Promise<{html: string}>} HTML diff content
+ * @throws {Error} When the API request fails or endpoint doesn't exist
+ */
+export async function fetchDiffForPath(projectInfo, filePath, oldPath, fileStatus = 'modified') {
+    if (!projectInfo.isComparePage) {
+        throw new Error('diff_for_path is only available on compare pages');
+    }
+
+    const gitlabBaseUrl = window.location.origin;
+    
+    const isNewFile = fileStatus === 'added';
+    const fileIdentifier = `${filePath}-${isNewFile ? 'true' : 'false'}-false-false`;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromProjectId = urlParams.get('from_project_id') || projectInfo.projectId || '';
+    
+    const params = new URLSearchParams({
+        file_identifier: fileIdentifier,
+        from: projectInfo.targetBranch,
+        from_project_id: fromProjectId,
+        new_path: filePath,
+        old_path: oldPath,
+        straight: 'false',
+        to: projectInfo.sourceBranch
+    });
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+    
+    const apiUrl = `${gitlabBaseUrl}/${projectInfo.projectPath}/-/compare/diff_for_path?${params.toString()}`;
+
+    const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            ...(csrfToken && { 'X-CSRF-Token': csrfToken })
+        }
+    });
+
+    if (!response.ok) {
+        if (response.status === 404) {
+            throw new Error('Diff endpoint not available for this file');
+        }
+        throw new Error(`API error (${response.status}): ${response.statusText}`);
+    }
+
+    return await response.json();
 }
 
 /**
