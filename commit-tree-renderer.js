@@ -534,7 +534,9 @@ function extractDiffFromGitLabHTML(html) {
         const contentCell = lineHolder.querySelector('.line_content');
         if (!contentCell) return;
         
-        const text = contentCell.textContent || '';
+        let text = contentCell.textContent || '';
+        text = text.replace(/\n/g, '');
+        
         if (text.startsWith('\\ No newline at end of file') || text.startsWith('@@')) return;
         
         const getLineNum = (selector) => {
