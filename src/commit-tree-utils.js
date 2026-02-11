@@ -9,11 +9,15 @@
  * @returns {{isCommitPage: boolean, isComparePage: boolean, isBranchHistoryPage: boolean}} Page type flags
  */
 export function getPageType() {
-    const currentPath = window.location.pathname;
+    const path = window.location.pathname;
+    const isBranchHistoryPage = path.includes('/commits/');
+    const isComparePage = path.includes('/compare/');
+    const isCommitPage = !isBranchHistoryPage && path.includes('/commit/');
+
     return {
-        isCommitPage: currentPath.includes('/commit/'),
-        isComparePage: currentPath.includes('/compare/'),
-        isBranchHistoryPage: currentPath.includes('/commits/') || currentPath.includes('/-/commits/')
+        isCommitPage,
+        isComparePage,
+        isBranchHistoryPage
     };
 }
 
@@ -38,7 +42,7 @@ export function extractProjectAndCommitInfo() {
     let targetBranch = null;
     let branchName = null;
 
-    const pathMatch = window.location.pathname.match(/^((\/([^/]+))+?)\/-\/co/);
+    const pathMatch = window.location.pathname.match(/^(.*?)\/-\/(?:commit|commits|compare)/);
     if (pathMatch) {
         projectPath = pathMatch[1].substr(1);
     }
@@ -47,7 +51,7 @@ export function extractProjectAndCommitInfo() {
         const commitShaMatch = window.location.pathname.match(/\/commit\/([a-f0-9]+)/);
         commitSha = commitShaMatch ? commitShaMatch[1] : null;
     } else if (isComparePage) {
-        const branchesMatch = window.location.pathname.match(/\/compare\/([^.]+)\.\.\.([^?]+)/);
+        const branchesMatch = window.location.pathname.match(/\/compare\/(.+?)(?:\.){2,3}(.+?)(?:\?|$)/);
         if (branchesMatch) {
             targetBranch = decodeURIComponent(branchesMatch[1]);
             sourceBranch = decodeURIComponent(branchesMatch[2]);

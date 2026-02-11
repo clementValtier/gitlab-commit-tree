@@ -65,7 +65,11 @@ import './commit-tree.css';
                     (msg) => { loading.innerHTML = `${msg} <span class="ct-spinner"></span>`; }
                 );
 
-                const fileData = api.processFilesFromApiResponse(diffData, projectInfo.isComparePage);
+                const fileData = api.processFilesFromApiResponse(
+                    diffData, 
+                    projectInfo.isComparePage, 
+                    projectInfo.commitSha || projectInfo.sourceBranch
+                );
                 loading.remove();
 
                 if (fileData.length === 0) {
@@ -224,7 +228,7 @@ import './commit-tree.css';
 
         try {
             const diffData = await api.fetchAllFilesWithPagination(projectInfo, null, commitSha);
-            const fileData = api.processFilesFromApiResponse(diffData, false);
+            const fileData = api.processFilesFromApiResponse(diffData, false, commitSha);
 
             loading.remove();
 

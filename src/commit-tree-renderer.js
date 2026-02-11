@@ -176,7 +176,7 @@ export function renderTree(container, node, level = 0, filter = '', specificComm
             return;
         }
 
-        const item = createTreeItem(child, level, isCollapsible, specificCommitSha, previewPanel);
+        const item = createTreeItem(child, level, isCollapsible);
         container.appendChild(item.element);
 
         if (child.type === 'folder' && isCollapsible) {
@@ -260,7 +260,7 @@ function setupTreeEventDelegation(treeContainer, specificCommitSha, previewPanel
                 });
                 treeItem.classList.add('ct-selected');
             } else if (!scrollToFileInCurrentPage(child.path)) {
-                navigateToFile(child.path, null, specificCommitSha);
+                navigateToFile(child.path, null, child.ref || specificCommitSha);
             }
         }
     };
@@ -277,7 +277,7 @@ function setupTreeEventDelegation(treeContainer, specificCommitSha, previewPanel
         const child = treeItem._fileNode;
         if (!child) return;
 
-        showContextMenu(e, child, treeItem, specificCommitSha, previewPanel);
+        showContextMenu(e, child, treeItem, child.ref || specificCommitSha, previewPanel);
     };
 }
 
@@ -286,11 +286,9 @@ function setupTreeEventDelegation(treeContainer, specificCommitSha, previewPanel
  * @param {Object} child - Tree node data
  * @param {number} level - Indentation level
  * @param {boolean} isCollapsible - Whether the item can be expanded/collapsed
- * @param {string|null} specificCommitSha - Specific commit SHA
- * @param {HTMLElement|null} previewPanel - Preview panel element
  * @returns {{element: HTMLElement, chevron: HTMLElement, icon: HTMLElement, name: HTMLElement}} Created elements
  */
-function createTreeItem(child, level, isCollapsible, specificCommitSha, previewPanel) {
+function createTreeItem(child, level, isCollapsible) {
     const item = createElement('div', {
         className: `${cssClasses.treeItem} ${child.type === 'folder' ? cssClasses.folder : cssClasses.file}`,
         dataset: { path: child.path || child.name }
@@ -391,7 +389,8 @@ function autoExpandSingleChild(childContainer, child) {
         const subFolderItem = childContainer.querySelector(`.${cssClasses.treeItem}.${cssClasses.folder}`);
         if (subFolderItem && !subFolderItem.classList.contains(cssClasses.expanded)) {
             setTimeout(() => {
-                subFolderItem.querySelector(`.${cssClasses.treeItemChevron}`).click();
+                const chevron = subFolderItem.querySelector(`.${cssClasses.treeItemChevron}`);
+                if (chevron) chevron.click();
             }, 10);
         }
     }
@@ -413,9 +412,9 @@ function showFileInPreview(previewPanel, fileNode, mode = 'diff') {
         if (searchInput) searchInput.value = '';
     }
     previewPanel._currentFileNode = fileNode;
+    const ref = fileNode.ref || currentCommitSha;
 
     const previewHeader = createElement('div', { className: 'ct-preview-header' });
-    
     const fileInfo = createElement('div', { className: 'ct-preview-file-info' });
     const fileName = createElement('span', { className: 'ct-preview-filename' }, fileNode.name);
     const filePath = createElement('span', { className: 'ct-preview-filepath' }, fileNode.path);
@@ -451,7 +450,7 @@ function showFileInPreview(previewPanel, fileNode, mode = 'diff') {
     const previewContent = createElement('div', { className: 'ct-preview-content' });
 
     if (mode === 'full') {
-        renderFullFileContent(previewContent, fileNode);
+        renderFullFileContent(previewContent, fileNode, ref);
     } else {
         if (fileNode.has_diff_content && fileNode.diff_content) {
             renderDiff(previewContent, fileNode.diff_content, fileNode.path);
@@ -502,7 +501,7 @@ function showFileInPreview(previewPanel, fileNode, mode = 'diff') {
  * Renders empty diff state with a link to view the file
  * @param {HTMLElement} container - Container element
  * @param {Object} fileNode - File node data
- * @param {HTMLElement} previewPanel - Preview panel for refresh
+ * @param {HTMLElement} previewPanel - Preview panel for context
  */
 function renderEmptyDiffWithLoadButton(container, fileNode, previewPanel) {
     const emptyDiv = createElement('div', { className: 'ct-diff-empty' });
@@ -515,14 +514,9 @@ function renderEmptyDiffWithLoadButton(container, fileNode, previewPanel) {
         const viewFileBtn = createElement('button', {
             className: `${cssClasses.button} ct-diff-load-btn`
         }, `${icons.file} <span>Ouvrir le fichier</span>`);
-
-        viewFileBtn.onclick = () => {
-            navigateToFile(fileNode.path, currentProjectInfo, currentCommitSha);
-        };
-        
+        viewFileBtn.onclick = () => navigateToFile(fileNode.path, currentProjectInfo, fileNode.ref || currentCommitSha);
         emptyDiv.appendChild(viewFileBtn);
     }
-
     container.appendChild(emptyDiv);
 }
 
@@ -612,7 +606,7 @@ function showContextMenu(event, child, item, specificCommitSha, previewPanel) {
 
     const viewItem = createElement('div', { className: 'ct-menu-item' }, 'Voir le fichier');
     viewItem.onclick = () => {
-        navigateToFile(child.path, null, specificCommitSha);
+        navigateToFile(child.path, null, child.ref || specificCommitSha);
         contextMenu.remove();
     };
     contextMenu.appendChild(viewItem);
@@ -621,7 +615,7 @@ function showContextMenu(event, child, item, specificCommitSha, previewPanel) {
         const diffItem = createElement('div', { className: 'ct-menu-item' }, 'Voir les différences');
         diffItem.onclick = () => {
             if (previewPanel) {
-                showFileInPreview(previewPanel, child);
+                showFileInPreview(previewPanel, child, previewPanel._viewMode || 'diff');
                 const treeContainer = item.closest(`.${cssClasses.tree}`);
                 if (treeContainer) {
                     treeContainer.querySelectorAll(`.${cssClasses.treeItem}`).forEach(el => {
@@ -988,14 +982,15 @@ function hasMatchingChildren(node, filter) {
  * Renders the full file content (without diff)
  * @param {HTMLElement} container - Container element
  * @param {Object} fileNode - File node data
+ * @param {string|null} [refOverride=null] - Optional reference override
  */
-async function renderFullFileContent(container, fileNode) {
+async function renderFullFileContent(container, fileNode, refOverride = null) {
     if (!currentProjectInfo) {
         container.innerHTML = '<div class="ct-diff-empty">Contexte du projet non disponible.</div>';
         return;
     }
 
-    const ref = currentCommitSha || currentProjectInfo.commitSha || currentProjectInfo.sourceBranch || currentProjectInfo.branchName || 'main';
+    const ref = refOverride || fileNode.ref || currentCommitSha || currentProjectInfo.commitSha || currentProjectInfo.sourceBranch || currentProjectInfo.branchName || 'main';
     const cacheKey = `${currentProjectInfo.projectPath}:${fileNode.path}@${ref}`;
     
     let fileContent = fullFileCache.get(cacheKey);

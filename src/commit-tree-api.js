@@ -125,15 +125,18 @@ export async function fetchAllFilesWithPagination(projectInfo, progressCallback,
  * Processes raw API response into structured file data
  * @param {Object|Array} diffData - Raw diff data from API
  * @param {boolean} [isComparePage=false] - Whether this is compare page data
+ * @param {string|null} [ref=null] - Git reference for this data
  * @returns {Array<{
  *   path: string,
  *   old_path: string,
  *   diff_index: number,
  *   status: string,
- *   diff_content: string
+ *   diff_content: string,
+ *   has_diff_content: boolean,
+ *   ref: string|null
  * }>} Processed file data array
  */
-export function processFilesFromApiResponse(diffData, isComparePage = false) {
+export function processFilesFromApiResponse(diffData, isComparePage = false, ref = null) {
     const fileData = [];
 
     if (!diffData) {
@@ -162,7 +165,8 @@ export function processFilesFromApiResponse(diffData, isComparePage = false) {
                 diff_index: index,
                 status: status,
                 diff_content: diff.diff,
-                has_diff_content: hasDiff
+                has_diff_content: hasDiff,
+                ref: ref
             });
         }
     });
@@ -177,7 +181,9 @@ export function processFilesFromApiResponse(diffData, isComparePage = false) {
  *   old_path: string,
  *   diff_index: number,
  *   status: string,
- *   diff_content: string
+ *   diff_content: string,
+ *   has_diff_content: boolean,
+ *   ref: string|null
  * }>} files - Array of file objects
  * @returns {Object} Tree structure with nested folders and files
  */
@@ -208,7 +214,8 @@ export function buildFileTree(files) {
                     status: file.status,
                     diff_content: file.diff_content,
                     has_diff_content: file.has_diff_content,
-                    stats: stats
+                    stats: stats,
+                    ref: file.ref
                 };
 
                 propagateStats(root, file.path, stats);
