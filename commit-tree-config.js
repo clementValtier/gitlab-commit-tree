@@ -21,6 +21,7 @@ export const icons = {
     tree: `<svg style="width: 16px; height: 16px; fill: #737278;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 104.12 122.88"><path d="M8,0V33.06H36.47v8H8v63.61H36v8H0V0ZM45.31,92.07l3.83,28.87a2,2,0,0,0,1.8,1.94H97.37c1.07,0,1.67-1,1.8-2l5-28.81Zm2.37-8.24-2.13,4.73h58.39l-2.15-4.74h-26a1.55,1.55,0,0,1-1.56-1.56V78.55H52v3.73a1.54,1.54,0,0,1-1.55,1.55ZM45.31,28.4l3.83,28.86a2,2,0,0,0,1.8,1.94H97.37c1.07,0,1.67-1,1.8-2l5-28.82Zm2.37-8.24-2.13,4.72h58.39l-2.15-4.73h-26a1.56,1.56,0,0,1-1.56-1.56V14.88H52V18.6a1.55,1.55,0,0,1-1.55,1.56Z"/></svg>`,
     search: `<svg class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.5 7a3.5 3.5 0 1 1-7 0 3.5 3.5 0 0 1 7 0Zm-.393 4.168a5 5 0 1 1 1.06-1.06l2.613 2.612a.75.75 0 1 1-1.06 1.06l-2.613-2.612Z"/></svg>`,
     close: `<svg style="width: 16px;height: 16px;" class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"/></svg>`,
+    chevronUp: `<svg class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M12.78 10.28a.75.75 0 0 1-1.06 0L8 6.56l-3.72 3.72a.75.75 0 1 1-1.06-1.06l4.25-4.25a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06Z"/></svg>`,
     expandAll: `<svg class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 1.75a.75.75 0 0 1 .75.75v4.69l1.72-1.72a.75.75 0 1 1 1.06 1.06l-3 3a.75.75 0 0 1-1.06 0l-3-3a.75.75 0 0 1 1.06-1.06l1.72 1.72V2.5A.75.75 0 0 1 8 1.75Zm-5.25 9.5a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Z"/></svg>`,
     collapseAll: `<svg class="gl-icon gl-fill-current" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M8 9.25a.75.75 0 0 1-.75-.75V3.81L5.53 5.53a.75.75 0 0 1-1.06-1.06l3-3a.75.75 0 0 1 1.06 0l3 3a.75.75 0 0 1-1.06 1.06L8.75 3.81V8.5a.75.75 0 0 1-.75.75Zm-5.25 2a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Zm0 3a.75.75 0 0 1 .75-.75h9a.75.75 0 0 1 0 1.5h-9a.75.75 0 0 1-.75-.75Z"/></svg>`,
     viewDiff: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" style="height:16px;width:16px" viewBox="0 0 16 16"><rect width="12" height="12" x="2" y="2" stroke="#333" rx="1.5" fill="white"/><path stroke="#4ADE80" stroke-linecap="round" stroke-width="1.7" d="M4.5 5.5H8"/><path stroke="#999" stroke-linecap="round" stroke-width="1.7" d="M4.5 8h7"/><path stroke="#F87171" stroke-linecap="round" stroke-width="1.7" d="M4.5 10.5h5"/></svg>`,
@@ -142,7 +143,14 @@ export const cssClasses = {
     viewModeActive: 'ct-view-mode-active',
     fullFileContainer: 'ct-full-file-container',
     fullFileLine: 'ct-full-file-line',
-    fullFileLineNum: 'ct-full-file-line-num'
+    fullFileLineNum: 'ct-full-file-line-num',
+    previewSearch: 'ct-preview-search',
+    previewSearchBar: 'ct-preview-search-bar',
+    previewSearchInput: 'ct-preview-search-input',
+    previewSearchCounter: 'ct-preview-search-counter',
+    previewSearchBtnPrev: 'ct-preview-search-btn-prev',
+    previewSearchBtnNext: 'ct-preview-search-btn-next',
+    previewSearchBtnClose: 'ct-preview-search-btn-close'
 };
 
 /**
