@@ -4,29 +4,14 @@
  * @module commit-tree
  */
 
+import * as config from './commit-tree-config.js';
+import * as utils from './commit-tree-utils.js';
+import * as api from './commit-tree-api.js';
+import * as renderer from './commit-tree-renderer.js';
+import './commit-tree.css';
+
 (function() {
     'use strict';
-    
-    let config, utils, api, renderer;
-
-    async function loadModules() {
-        try {
-            const [configModule, utilsModule, apiModule, rendererModule] = await Promise.all([
-                import(browser.runtime.getURL('commit-tree-config.js')),
-                import(browser.runtime.getURL('commit-tree-utils.js')),
-                import(browser.runtime.getURL('commit-tree-api.js')),
-                import(browser.runtime.getURL('commit-tree-renderer.js'))
-            ]);
-
-            config = configModule;
-            utils = utilsModule;
-            api = apiModule;
-            renderer = rendererModule;
-        } catch (error) {
-            console.error('Erreur lors du chargement des modules:', error);
-            throw error;
-        }
-    }
 
     /**
      * Initializes the tree view for a commit page or compare page
@@ -281,8 +266,6 @@
      * @returns {Promise<void>}
      */
     async function init() {
-        await loadModules();
-
         const { isCommitPage, isComparePage, isBranchHistoryPage } = utils.getPageType();
 
         if (!isCommitPage && !isComparePage && !isBranchHistoryPage) {

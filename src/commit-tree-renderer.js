@@ -4,6 +4,7 @@
  * @module commit-tree-renderer
  */
 
+import * as Diff from 'diff';
 import { icons, cssClasses, getFileIcon } from './commit-tree-config.js';
 import { createElement, scrollToFileInCurrentPage, navigateToFile, debounce } from './commit-tree-utils.js';
 import { highlightCode } from './commit-tree-highlight.js';
@@ -725,8 +726,7 @@ export function renderDiff(container, diffContent, filePath) {
             continue;
         }
 
-        // Détection bloc removed + added de même longueur → word diff par paire
-        if (line.startsWith('-') && typeof Diff !== 'undefined') {
+        if (line.startsWith('-')) {
             let removed = [];
             let j = i;
             while (j < lines.length && lines[j].startsWith('-') && !lines[j].startsWith('---')) {

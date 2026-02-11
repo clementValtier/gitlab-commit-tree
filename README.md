@@ -28,13 +28,30 @@ L'extension fonctionne sur trois types de pages GitLab :
 1. Ouvrir Firefox et aller à `about:debugging`
 2. Cliquer sur "Ce Firefox"
 3. Cliquer sur "Charger un module complémentaire temporaire"
-4. Sélectionner le fichier `manifest.json`
+4. Sélectionner le fichier `manifest.json` situé dans le dossier `src/`
 
 ### Installation permanente
 
-1. Compresser le contenu du dossier en fichier `.zip`
+1. Compresser le contenu du dossier `src/` en fichier `.zip`
 2. Renommer en `.xpi`
 3. Installer via `about:addons`
+
+## Développement
+
+### Structure du projet
+
+- `src/` : Fichiers source de l'extension
+- `tests/` : Tests unitaires
+- `vendor/` : Bibliothèques tierces (diff, highlight.js)
+
+### Tests
+
+Pour lancer les tests unitaires :
+
+```bash
+npm install
+npm test
+```
 
 ## Utilisation
 

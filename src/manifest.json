@@ -1,11 +1,8 @@
 {
   "manifest_version": 2,
-  "name": "GitLab Commit Tree",
-  "version": "2.2.0",
-  "description": "Affiche une arborescence des fichiers modifiés dans les commits, comparaisons et historiques de branches GitLab",
   "icons": {
-    "48": "icon-48.png",
-    "96": "icon-96.png"
+    "48": "icons/icon-48.png",
+    "96": "icons/icon-96.png"
   },
   "content_scripts": [
     {
@@ -18,24 +15,13 @@
         "https://gitlab.com/*/commits/*"
       ],
       "js": [
-        "vendor/diff/diff.min.js",
-        "vendor/highlight/highlight.min.js",
-        "vendor/highlight/lang/twig.min.js",
         "commit-tree.js"
       ],
       "css": [
-        "vendor/highlight/github.min.css",
         "commit-tree.css"
       ],
       "run_at": "document_end"
     }
-  ],
-  "web_accessible_resources": [
-    "commit-tree-config.js",
-    "commit-tree-utils.js",
-    "commit-tree-api.js",
-    "commit-tree-renderer.js",
-    "commit-tree-highlight.js"
   ],
   "browser_specific_settings": {
     "gecko": {

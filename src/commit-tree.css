@@ -6,6 +6,8 @@
 /* ============================================
    CSS Custom Properties (Design Tokens)
    ============================================ */
+@import 'highlight.js/styles/github.css';
+
 :root {
     --ct-bg-default: #fff;
     --ct-bg-subtle: #fafafa;
