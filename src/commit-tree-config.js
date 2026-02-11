@@ -42,6 +42,46 @@ export const fileTypeIcons = {
 };
 
 /**
+ * Mapping de fichiers spécifiques vers les langages highlight.js
+ * @type {Object<string, string>}
+ */
+export const fileLanguageMapping = {
+    '.gitignore': 'ini',
+    '.gitattributes': 'ini',
+    '.gitmodules': 'ini',
+    '.dockerignore': 'ini',
+    '.editorconfig': 'ini',
+    '.npmrc': 'ini',
+    '.yarnrc': 'ini',
+    '.env': 'ini',
+    '.env.example': 'ini',
+    '.env.local': 'ini',
+    '.env.production': 'ini',
+    '.env.development': 'ini',
+    'package-lock.json': 'json',
+    'composer.lock': 'json',
+    'yarn.lock': 'yaml',
+    'Gemfile.lock': 'properties',
+    'pnpm-lock.yaml': 'yaml',
+    'Pipfile.lock': 'json',
+    'poetry.lock': 'toml',
+    'Cargo.lock': 'toml',
+    '.eslintrc': 'json',
+    '.prettierrc': 'json',
+    '.babelrc': 'json',
+    '.stylelintrc': 'json',
+    'tsconfig.json': 'json',
+    'jsconfig.json': 'json',
+    '.mailmap': 'ini',
+    '.git-blame-ignore-revs': 'plaintext',
+    'Makefile': 'makefile',
+    'Dockerfile': 'dockerfile',
+    'docker-compose.yml': 'yaml',
+    'docker-compose.yaml': 'yaml',
+    'phpstan.dist.neon': 'yaml'
+};
+
+/**
  * Gets the appropriate icon for a file based on its extension
  * @param {string} filename - The filename
  * @returns {string} The SVG icon string

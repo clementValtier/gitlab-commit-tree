@@ -23,7 +23,7 @@ function manifestPlugin() {
   };
 }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   root: 'src',
   publicDir: path.resolve(__dirname, 'src/public'),
   build: {
@@ -39,16 +39,16 @@ export default defineConfig({
         chunkFileNames: `[name].js`,
         assetFileNames: `[name].[ext]`
       },
-      plugins: [
+      plugins: mode === 'production' ? [
         terser({
           compress: {
             drop_console: true,
           }
         })
-      ]
+      ] : []
     }
   },
   plugins: [
     manifestPlugin()
   ],
-});
+}));

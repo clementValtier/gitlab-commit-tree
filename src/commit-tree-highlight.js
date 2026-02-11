@@ -1,5 +1,6 @@
 import hljs from 'highlight.js';
 import omnisKeywords from './omnis-keywords.json';
+import { fileLanguageMapping } from './commit-tree-config.js';
 
 // register Omnis language (custom)
 registerOmnisLanguage();
@@ -8,21 +9,32 @@ registerOmnisLanguage();
  * Applies syntax highlighting to a line of code
  * @param {string} content - Content of the line
  * @param {string} fileExt - File extension (e.g., 'js', 'py', 'vue')
+ * @param {string} filename - Full filename (optional, used for special files)
  * @returns {string} HTML with syntax highlighting
  */
-export function highlightCode(content, fileExt) {
-    if (!fileExt || !content.trim()) {
+export function highlightCode(content, fileExt, filename = '') {
+    if (!content.trim()) {
         return escapeHtml(content);
     }
 
-    if (!hljs.getLanguage(fileExt)) {
-        return escapeHtml(content);
+    let language = fileExt;
+
+    if (!hljs.getLanguage(language)) {
+        if (!fileLanguageMapping[filename]) {
+            return escapeHtml(content);
+        }
+
+        language = fileLanguageMapping[filename];
+
+        if (!hljs.getLanguage(language)) {
+            return escapeHtml(content);
+        }
     }
 
     try {
-        const result = hljs.highlight(content, { 
-            language: fileExt,
-            ignoreIllegals: true 
+        const result = hljs.highlight(content, {
+            language: language,
+            ignoreIllegals: true
         });
         return result.value;
     } catch (e) {

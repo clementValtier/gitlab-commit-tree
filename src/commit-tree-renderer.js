@@ -683,7 +683,8 @@ export function renderDiff(container, diffContent, filePath) {
         return;
     }
 
-    const fileExt = filePath.split('.').pop()?.toLowerCase() || '';
+    const filename = filePath.split('/').pop() || '';
+    const fileExt = filename.split('.').pop()?.toLowerCase() || '';
     const lines = diffContent.split('\n');
     const table = createElement('div', { className: 'ct-diff-table' });
 
@@ -739,13 +740,13 @@ export function renderDiff(container, diffContent, filePath) {
                 for (let k = 0; k < removed.length; k++) {
                     const oldText = removed[k].substring(1);
                     const changes = Diff.diffWords(oldText, added[k].substring(1));
-                    renderModifiedLine(table, 'removed', oldLineNum++, '', changes, true, fileExt);
+                    renderModifiedLine(table, 'removed', oldLineNum++, '', changes, true, fileExt, filename);
                 }
                 // Puis les lignes added
                 for (let k = 0; k < added.length; k++) {
                     const newText = added[k].substring(1);
                     const changes = Diff.diffWords(removed[k].substring(1), newText);
-                    renderModifiedLine(table, 'added', '', newLineNum++, changes, false, fileExt);
+                    renderModifiedLine(table, 'added', '', newLineNum++, changes, false, fileExt, filename);
                 }
 
                 i = j - 1;           // saute tout le bloc
@@ -754,7 +755,7 @@ export function renderDiff(container, diffContent, filePath) {
         }
 
         // Lignes normales (context, added, removed seuls)
-        renderNormalLine(table, line, oldLineNum, newLineNum, fileExt);
+        renderNormalLine(table, line, oldLineNum, newLineNum, fileExt, filename);
 
         if (line.startsWith('+')) {
             newLineNum++;
@@ -770,7 +771,7 @@ export function renderDiff(container, diffContent, filePath) {
 }
 
 // Fonction helper pour les lignes modifiées avec surlignage
-function renderModifiedLine(table, type, oldNum, newNum, changes, isRemoved, fileExt) {
+function renderModifiedLine(table, type, oldNum, newNum, changes, isRemoved, fileExt, filename) {
     const lineRow = createElement('div', { className: `ct-diff-line ct-diff-line-${type}` });
     const oldNumCell = createElement('span', { className: 'ct-line-num ct-line-num-old' }, oldNum.toString());
     const newNumCell = createElement('span', { className: 'ct-line-num ct-line-num-new' }, newNum.toString());
@@ -789,7 +790,7 @@ function renderModifiedLine(table, type, oldNum, newNum, changes, isRemoved, fil
             contentCell.appendChild(span);
         } else if (!part.added && !part.removed) {
             const span = createElement('span');
-            span.innerHTML = highlightCode(part.value, fileExt);
+            span.innerHTML = highlightCode(part.value, fileExt, filename);
             contentCell.appendChild(span);
         }
     });
@@ -801,7 +802,7 @@ function renderModifiedLine(table, type, oldNum, newNum, changes, isRemoved, fil
 }
 
 // Fonction helper pour les lignes normales
-function renderNormalLine(table, line, oldLineNum, newLineNum, fileExt) {
+function renderNormalLine(table, line, oldLineNum, newLineNum, fileExt, filename) {
     let lineType = 'context';
     let oldNum = '';
     let newNum = '';
@@ -832,7 +833,7 @@ function renderNormalLine(table, line, oldLineNum, newLineNum, fileExt) {
     if (lineContent === '') {
         contentCell.innerHTML = ' ';
     } else {
-        contentCell.innerHTML = highlightCode(lineContent, fileExt);
+        contentCell.innerHTML = highlightCode(lineContent, fileExt, filename);
     }
 
     lineRow.appendChild(oldNumCell);
@@ -1013,7 +1014,8 @@ async function renderFullFileContent(container, fileNode, refOverride = null) {
         }
     }
 
-    const fileExt = fileNode.name.split('.').pop()?.toLowerCase() || '';
+    const filename = fileNode.name;
+    const fileExt = filename.split('.').pop()?.toLowerCase() || '';
     const lines = fileContent.split('\n');
 
     const table = createElement('div', { className: cssClasses.fullFileContainer });
@@ -1027,7 +1029,7 @@ async function renderFullFileContent(container, fileNode, refOverride = null) {
         if (line === '') {
             contentCell.innerHTML = ' ';
         } else {
-            contentCell.innerHTML = highlightCode(line, fileExt);
+            contentCell.innerHTML = highlightCode(line, fileExt, filename);
         }
 
         lineRow.appendChild(lineNumCell);
