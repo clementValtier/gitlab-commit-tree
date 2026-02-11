@@ -93,13 +93,15 @@ import './commit-tree.css';
                     expandAllBtn,
                     collapseAllBtn,
                     viewDiffBtn,
-                    viewFullBtn
+                    viewFullBtn,
+                    fullscreenBtn
                 } = renderer.createTreeContainer(`Vue en arborescence (${pageTypeTitle})`, fileData.length);
 
                 wrapper.appendChild(container);
                 renderer.renderTree(treeView, fileTree, 0, '', null, previewPanel);
                 renderer.setupSearch(searchInput, treeView, fileTree, null, previewPanel);
                 renderer.setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel);
+                renderer.setupFullscreen(container, fullscreenBtn);
 
                 expandAllBtn.onclick = () => renderer.expandAllFolders(treeView);
                 collapseAllBtn.onclick = () => renderer.collapseAllFolders(treeView);
@@ -247,13 +249,15 @@ import './commit-tree.css';
                 expandAllBtn,
                 collapseAllBtn,
                 viewDiffBtn,
-                viewFullBtn
+                viewFullBtn,
+                fullscreenBtn
             } = renderer.createTreeContainer(`Commit ${commitSha.substring(0, 8)}`, fileData.length);
 
             treeContainer.appendChild(container);
             renderer.renderTree(treeView, fileTree, 0, '', commitSha, previewPanel);
             renderer.setupSearch(searchInput, treeView, fileTree, commitSha, previewPanel);
             renderer.setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel);
+            renderer.setupFullscreen(container, fullscreenBtn);
 
             expandAllBtn.onclick = () => renderer.expandAllFolders(treeView);
             collapseAllBtn.onclick = () => renderer.collapseAllFolders(treeView);

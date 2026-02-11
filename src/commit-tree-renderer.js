@@ -48,7 +48,8 @@ export function setProjectContext(projectInfo, commitSha = null) {
  *   expandAllBtn: HTMLElement,
  *   collapseAllBtn: HTMLElement,
  *   viewDiffBtn: HTMLElement,
- *   viewFullBtn: HTMLElement
+ *   viewFullBtn: HTMLElement,
+ *   fullscreenBtn: HTMLElement
  * }} Created elements
  */
 export function createTreeContainer(title, fileCount) {
@@ -98,8 +99,14 @@ export function createTreeContainer(title, fileCount) {
         title: 'Mode fichier complet'
     }, icons.viewFile);
 
+    const fullscreenBtn = createElement('button', {
+        className: `${cssClasses.button} ct-btn-icon ct-fullscreen-btn`,
+        title: 'Plein écran'
+    }, icons.maximize);
+
     viewModeGroup.appendChild(viewDiffBtn);
     viewModeGroup.appendChild(viewFullBtn);
+    viewModeGroup.appendChild(fullscreenBtn);
 
     toolbar.appendChild(searchBox);
     toolbar.appendChild(buttonGroup);
@@ -135,7 +142,8 @@ export function createTreeContainer(title, fileCount) {
         expandAllBtn,
         collapseAllBtn,
         viewDiffBtn,
-        viewFullBtn
+        viewFullBtn,
+        fullscreenBtn
     };
 }
 
@@ -1370,4 +1378,34 @@ export function setupPreviewSearch(previewPanel) {
 
     previewPanel._toggleSearch = toggleSearchBar;
     previewPanel._cleanupSearch = () => abortController.abort();
+}
+
+/**
+ * Sets up fullscreen mode toggle
+ * @param {HTMLElement} container - Container element
+ * @param {HTMLElement} fullscreenBtn - Fullscreen button element
+ */
+export function setupFullscreen(container, fullscreenBtn) {
+    if (!container || !fullscreenBtn) return;
+
+    const toggleFullscreen = () => {
+        const isFullscreen = container.classList.toggle(cssClasses.containerFullscreen);
+        fullscreenBtn.innerHTML = isFullscreen ? icons.minimize : icons.maximize;
+        fullscreenBtn.title = isFullscreen ? 'Quitter le plein écran' : 'Plein écran';
+        document.body.style.overflow = isFullscreen ? 'hidden' : '';
+    };
+
+    fullscreenBtn.onclick = toggleFullscreen;
+
+    const handleKeydown = (e) => {
+        if (e.key === 'Escape' && container.classList.contains(cssClasses.containerFullscreen)) {
+            e.preventDefault();
+            container.classList.remove(cssClasses.containerFullscreen);
+            fullscreenBtn.innerHTML = icons.maximize;
+            fullscreenBtn.title = 'Plein écran';
+            document.body.style.overflow = '';
+        }
+    };
+
+    document.addEventListener('keydown', handleKeydown);
 }
