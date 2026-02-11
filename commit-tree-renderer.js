@@ -1065,6 +1065,70 @@ export function createErrorMessage(message) {
 }
 
 /**
+ * Récupère le container GitLab Commit Tree actif basé sur la sélection ou la position
+ * @returns {HTMLElement|null} Le container actif ou null
+ */
+function getActiveContainer() {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+        const selectedNode = selection.getRangeAt(0).startContainer;
+        const element = selectedNode.nodeType === Node.ELEMENT_NODE ? selectedNode : selectedNode.parentElement;
+        const container = element?.closest(`.${cssClasses.container}`);
+        if (container) return container;
+    }
+    
+    const elementAtCenter = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
+    return elementAtCenter?.closest(`.${cssClasses.container}`);
+}
+
+/**
+ * Sélectionne le bloc de diff contenant le curseur ou tout le fichier lors d'un Cmd+A / Ctrl+A
+ * @returns {boolean} True si une sélection a été effectuée
+ */
+function selectCurrentDiffBlock() {
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return false;
+    
+    const currentElement = selection.getRangeAt(0).startContainer;
+    const element = currentElement.nodeType === Node.ELEMENT_NODE ? currentElement : currentElement.parentElement;
+    
+    const diffLine = element.closest('.ct-diff-line');
+    if (diffLine) {
+        let start = diffLine;
+        while (start.previousElementSibling && 
+               !start.previousElementSibling.classList.contains('ct-diff-separator')) {
+            start = start.previousElementSibling;
+        }
+        
+        let end = diffLine;
+        while (end.nextElementSibling && 
+               !end.nextElementSibling.classList.contains('ct-diff-separator')) {
+            end = end.nextElementSibling;
+        }
+        
+        const range = document.createRange();
+        range.setStartBefore(start);
+        range.setEndAfter(end);
+        
+        selection.removeAllRanges();
+        selection.addRange(range);
+        return true;
+    }
+
+    const fullFileContainer = element.closest(`.${cssClasses.fullFileContainer}`);
+    if (fullFileContainer) {
+        const range = document.createRange();
+        range.selectNodeContents(fullFileContainer);
+        
+        selection.removeAllRanges();
+        selection.addRange(range);
+        return true;
+    }
+
+    return false;
+}
+
+/**
  * Sets up preview panel search functionality with CSS Custom Highlight API
  * @param {HTMLElement} previewPanel - Preview panel element
  */
@@ -1281,8 +1345,7 @@ export function setupPreviewSearch(previewPanel) {
     const container = previewPanel.closest('.ct-container');
 
     const handleKeydown = (e) => {
-        const elementAtCenter = document.elementFromPoint(window.innerWidth / 2, window.innerHeight / 2);
-        const activeContainer = elementAtCenter?.closest('.ct-container');
+        const activeContainer = getActiveContainer();
         const hasContent = previewPanel.querySelector('.ct-preview-header');
 
         if (activeContainer === container) {
@@ -1295,6 +1358,13 @@ export function setupPreviewSearch(previewPanel) {
             if (e.key === 'Escape' && searchBar.style.display === 'block') {
                 e.preventDefault();
                 toggleSearchBar(false);
+            }
+
+            if ((e.metaKey || e.ctrlKey) && e.key === 'a' && hasContent) {
+                if (selectCurrentDiffBlock()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
             }
         }
     };
