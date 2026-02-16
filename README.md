@@ -94,12 +94,16 @@ npm run package  # Créer le package .zip pour distribution
 
 ```
 ├── src/
-│   ├── commit-tree.js           # Point d'entrée principal
-│   ├── commit-tree-*.js         # Modules de l'extension
-│   ├── commit-tree.css          # Styles
-│   ├── omnis-keywords.json      # Définition langage Omnis
+│   ├── index.js                 # Point d'entrée principal
 │   ├── manifest.json            # Manifest de l'extension
-│   └── public/                  # Assets statiques
+│   ├── api/                     # Appels API GitLab
+│   ├── assets/                  # Icônes et ressources statiques
+│   ├── components/              # Composants UI
+│   ├── config/                  # Configuration et constantes
+│   ├── core/                    # Logique centrale
+│   ├── public/                  # Assets de l'extension
+│   ├── styles/                  # CSS modulaire
+│   └── utils/                   # Utilitaires
 ├── tests/
 │   ├── api.test.js              # Tests API
 │   ├── utils.test.js            # Tests utilitaires
