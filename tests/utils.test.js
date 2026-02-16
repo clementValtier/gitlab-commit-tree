@@ -1,4 +1,4 @@
-import { parseFileStats } from '../src/commit-tree-utils.js';
+import { parseFileStats } from '../src/utils/helpers.js';
 
 describe('parseFileStats', () => {
     test('should return 0 for empty diff', () => {

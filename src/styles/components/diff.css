@@ -1,0 +1,220 @@
+/**
+ * Diff & Full File Content Components
+ */
+
+.ct-diff-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    text-align: center;
+    color: var(--ct-text-subtle);
+    gap: 12px;
+    flex: 1;
+}
+
+.ct-diff-empty .ct-button {
+    margin-top: 8px;
+}
+
+/* Diff table structure */
+.ct-diff-table {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--ct-font-mono);
+    font-size: 12px;
+    line-height: 20px;
+}
+
+.ct-diff-line {
+    display: table-row;
+}
+
+/* Line numbers cells - sticky */
+.ct-line-num {
+    display: table-cell;
+    width: 50px;
+    min-width: 50px;
+    padding: 0 8px;
+    text-align: right;
+    color: var(--ct-text-subtle);
+    background-color: var(--ct-bg-subtle);
+    user-select: none;
+    font-size: 11px;
+    vertical-align: top;
+    line-height: 20px;
+    position: sticky;
+    z-index: 1;
+}
+
+.ct-line-num-old {
+    left: 0;
+}
+
+.ct-line-num-new {
+    left: 50px;
+    border-right: 1px solid var(--ct-border-color);
+}
+
+/* Line content cell */
+.ct-line-content {
+    display: table-cell;
+    padding: 0 12px;
+    white-space: pre;
+    vertical-align: top;
+    line-height: 20px;
+    width: 100%;
+}
+
+/* Diff section separator */
+.ct-diff-separator {
+    display: table-row;
+}
+
+.ct-diff-separator-cell {
+    display: table-cell;
+    padding: 6px 12px;
+    background-color: var(--ct-bg-subtle);
+    border-top: 1px solid var(--ct-border-color);
+    border-bottom: 1px solid var(--ct-border-color);
+    color: var(--ct-text-subtle);
+    font-size: 11px;
+    text-align: center;
+    user-select: none;
+}
+
+.ct-diff-separator-cell:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+}
+
+.ct-diff-separator-spacer {
+    display: table-cell;
+    background-color: var(--ct-bg-subtle);
+    border-top: 1px solid var(--ct-border-color);
+    border-bottom: 1px solid var(--ct-border-color);
+    width: 50px;
+    min-width: 50px;
+}
+
+.ct-diff-separator-spacer:nth-child(2) {
+    position: sticky;
+    left: 50px;
+    z-index: 1;
+}
+
+.ct-diff-separator-content {
+    display: table-cell;
+    background-color: var(--ct-bg-subtle);
+    border-top: 1px solid var(--ct-border-color);
+    border-bottom: 1px solid var(--ct-border-color);
+    width: 100%;
+}
+
+/* Diff line colors - added */
+.ct-diff-line-added .ct-line-num {
+    background-color: var(--ct-diff-added-num-bg);
+    color: var(--ct-status-added);
+}
+
+.ct-diff-line-added .ct-line-content {
+    background-color: var(--ct-diff-added-line-bg);
+    color: var(--ct-diff-added-text);
+}
+
+/* Diff line colors - removed */
+.ct-diff-line-removed .ct-line-num {
+    background-color: var(--ct-diff-removed-num-bg);
+    color: var(--ct-status-deleted);
+}
+
+.ct-diff-line-removed .ct-line-content {
+    background-color: var(--ct-diff-removed-line-bg);
+    color: var(--ct-diff-removed-text);
+}
+
+/* Diff line colors - context */
+.ct-diff-line-context .ct-line-content {
+    color: var(--ct-text-default);
+}
+
+/* Word-level highlighting for modified lines */
+.ct-word-added {
+    background-color: var(--ct-diff-added-word-bg);
+    color: #0e4329;
+    font-weight: 500;
+}
+
+.ct-word-removed {
+    background-color: var(--ct-diff-removed-word-bg);
+    color: #ae1800;
+    font-weight: 500;
+}
+
+/* Dark mode word-level highlighting */
+.gl-dark .ct-word-added,
+[data-theme="dark"] .ct-word-added {
+    background-color: var(--ct-diff-added-word-bg);
+    color: #ddfbe6;
+}
+
+.gl-dark .ct-word-removed,
+[data-theme="dark"] .ct-word-removed {
+    background-color: var(--ct-diff-removed-word-bg);
+    color: #f9d7dc;
+}
+
+/* Full file view container */
+.ct-full-file-container {
+    display: table;
+    width: 100%;
+    border-collapse: collapse;
+    font-family: var(--ct-font-mono);
+    font-size: 12px;
+    line-height: 20px;
+}
+
+.ct-full-file-line {
+    display: table-row;
+}
+
+.ct-full-file-line:hover .ct-full-file-line-num,
+.ct-full-file-line:hover .ct-line-content {
+    background-color: var(--ct-bg-subtle);
+}
+
+.ct-full-file-line-num {
+    display: table-cell;
+    width: 50px;
+    min-width: 50px;
+    padding: 0 8px;
+    text-align: right;
+    color: var(--ct-text-subtle);
+    background-color: var(--ct-bg-subtle);
+    user-select: none;
+    font-size: 11px;
+    vertical-align: top;
+    line-height: 20px;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    border-right: 1px solid var(--ct-border-color);
+}
+
+.ct-full-file-line .ct-line-content {
+    display: table-cell;
+    padding: 0 12px;
+    white-space: pre;
+    vertical-align: top;
+    line-height: 20px;
+    width: 100%;
+    background-color: var(--ct-bg-primary);
+    color: var(--ct-text-default);
+}
+
+.ct-full-file-line .ct-line-content:empty::before {
+    content: ' ';
+}

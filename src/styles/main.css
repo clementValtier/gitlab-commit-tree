@@ -1,0 +1,21 @@
+/**
+ * GitLab Commit Tree View Styles
+ * Main Entry Point - Aggregates all modular styles
+ */
+
+/* Base & Variables */
+@import './base/variables.css';
+
+/* Layout & Structure */
+@import './layout/structure.css';
+
+/* Components */
+@import './components/buttons.css';
+@import './components/tree.css';
+@import './components/preview.css';
+@import './components/diff.css';
+@import './components/menu.css';
+@import './components/states.css';
+
+/* Responsive */
+@import './layout/responsive.css';

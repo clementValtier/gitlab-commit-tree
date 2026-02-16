@@ -32,7 +32,7 @@ export default defineConfig(({ mode }) => ({
     chunkSizeWarningLimit: 1200,
     rollupOptions: {
       input: {
-        'commit-tree': path.resolve(__dirname, 'src/commit-tree.js')
+        'commit-tree': path.resolve(__dirname, 'src/index.js')
       },
       output: {
         entryFileNames: `[name].js`,

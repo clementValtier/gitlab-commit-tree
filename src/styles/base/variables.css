@@ -1,0 +1,76 @@
+/**
+ * Design Tokens & Theme Variables
+ */
+
+@import 'highlight.js/styles/github.css';
+
+:root {
+    --ct-bg-default: #fff;
+    --ct-bg-subtle: #fafafa;
+    --ct-bg-hover: #f0f0f0;
+    --ct-border-color: #dcdcde;
+    --ct-border-radius: 4px;
+    --ct-text-default: #303030;
+    --ct-text-subtle: #737278;
+    --ct-text-link: #1068bf;
+    --ct-icon-color: #737278;
+    --ct-status-added: #108548;
+    --ct-status-modified: #c17d10;
+    --ct-status-deleted: #dd2b0e;
+    --ct-status-renamed: #6666c4;
+    --ct-diff-added-num-bg: #CCFFD8;
+    --ct-diff-added-line-bg: #E6FFEC;
+    --ct-diff-added-word-bg: #ABF2BC;
+    --ct-diff-added-text: #24663b;
+    --ct-diff-removed-num-bg: #FFD7D5;
+    --ct-diff-removed-line-bg: #FFEBE9;
+    --ct-diff-removed-word-bg: #FFAEB3;
+    --ct-diff-removed-text: #ae1800;
+    --ct-button-bg: #fff;
+    --ct-button-bg-hover: #f0f0f0;
+    --ct-button-border: #bfbfc3;
+    --ct-focus-ring: rgba(31, 117, 203, 0.4);
+    --ct-font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans", Ubuntu, Cantarell, "Helvetica Neue", sans-serif;
+    --ct-font-mono: "GitLab Mono", ui-monospace, "JetBrains Mono", "Menlo", "DejaVu Sans Mono", "Consolas", monospace;
+}
+
+/* Dark mode support */
+.gl-dark,
+[data-theme="dark"] {
+    --ct-bg-default: #1f1f1f;
+    --ct-bg-subtle: #252525;
+    --ct-bg-hover: #333;
+    --ct-border-color: #404040;
+    --ct-text-default: #fafafa;
+    --ct-text-subtle: #999;
+    --ct-text-link: #5e9dea;
+    --ct-icon-color: #999;
+    --ct-status-added: #91d4a8;
+    --ct-status-modified: #e4a03d;
+    --ct-status-deleted: #f99;
+    --ct-status-renamed: #a3a3e0;
+    --ct-diff-added-num-bg: #0e4329;
+    --ct-diff-added-line-bg: #0a3622;
+    --ct-diff-added-word-bg: #2da160;
+    --ct-diff-added-text: #91d4a8;
+    --ct-diff-removed-num-bg: #5c1a1a;
+    --ct-diff-removed-line-bg: #4d1f1f;
+    --ct-diff-removed-word-bg: #c73838;
+    --ct-diff-removed-text: #f99;
+    --ct-button-bg: #2d2d2d;
+    --ct-button-bg-hover: #3d3d3d;
+    --ct-button-border: #525252;
+}
+
+/**
+ * Global SVG Icon Styling
+ */
+.gl-icon {
+    display: inline-block;
+    vertical-align: middle;
+    fill: currentColor;
+}
+
+.gl-fill-current {
+    fill: currentColor;
+}

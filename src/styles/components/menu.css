@@ -1,0 +1,26 @@
+/**
+ * Context Menu Component
+ */
+
+.ct-context-menu {
+    position: fixed;
+    background-color: var(--ct-bg-default);
+    border: 1px solid var(--ct-border-color);
+    border-radius: var(--ct-border-radius);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 4px 0;
+    z-index: 10000;
+    min-width: 160px;
+}
+
+.ct-menu-item {
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--ct-text-default);
+    cursor: pointer;
+    transition: background-color 0.1s;
+}
+
+.ct-menu-item:hover {
+    background-color: var(--ct-bg-hover);
+}

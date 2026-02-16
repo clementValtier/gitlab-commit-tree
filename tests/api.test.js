@@ -1,4 +1,4 @@
-import { processFilesFromApiResponse } from '../src/commit-tree-api.js';
+import { processFilesFromApiResponse, buildFileTree } from '../src/api/transformer.js';
 
 describe('processFilesFromApiResponse', () => {
     test('should return empty array for null input', () => {
@@ -64,8 +64,6 @@ describe('processFilesFromApiResponse', () => {
     });
 });
 
-import { buildFileTree } from '../src/commit-tree-api.js';
-
 describe('buildFileTree', () => {
     test('should build a nested tree structure', () => {
         const files = [
@@ -91,13 +89,6 @@ describe('buildFileTree', () => {
         const tree = buildFileTree(files);
 
         // a/b/c should be collapsed into one node if b and c are single children
-        // Wait, the logic in buildFileTree says:
-        // if grandchild.type === 'folder' -> collapse
-        // So a/b/c/file.txt:
-        // root -> a (folder) -> b (folder) -> c (folder) -> file.txt (file)
-        // b has only c (folder) -> collapse b/c
-        // a has only b/c (folder) -> collapse a/b/c
-        
         expect(tree.children['a/b/c']).toBeDefined();
         expect(tree.children['a/b/c'].children['file.txt']).toBeDefined();
     });

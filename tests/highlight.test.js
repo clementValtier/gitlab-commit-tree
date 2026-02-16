@@ -1,4 +1,4 @@
-import { highlightCode, escapeHtml } from '../src/commit-tree-highlight.js';
+import { highlightCode, escapeHtml } from '../src/core/highlight.js';
 
 describe('escapeHtml', () => {
     test('should escape special characters', () => {

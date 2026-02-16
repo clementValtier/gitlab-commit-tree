@@ -1,14 +1,16 @@
 import {
     createTreeContainer,
+    createLoadingIndicator,
+    createErrorMessage
+} from '../src/components/common/container.js';
+import {
     renderTree,
     expandAllFolders,
     collapseAllFolders,
-    setupSearch,
-    setupPreviewSearch,
-    renderDiff,
-    createLoadingIndicator,
-    createErrorMessage
-} from '../src/commit-tree-renderer.js';
+    setupSearch
+} from '../src/components/tree/renderer.js';
+import { setupPreviewSearch } from '../src/components/preview/search.js';
+import { renderDiff } from '../src/components/preview/diff-renderer.js';
 
 if (typeof CSS === 'undefined') {
     global.CSS = {

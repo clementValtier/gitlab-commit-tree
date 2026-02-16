@@ -1,0 +1,38 @@
+/**
+ * Responsive Adjustments
+ */
+
+@media (max-width: 768px) {
+    .ct-toolbar {
+        flex-wrap: wrap;
+    }
+
+    .ct-search-box {
+        max-width: 100%;
+        order: 2;
+        margin-top: 8px;
+    }
+
+    .ct-button-group {
+        order: 1;
+        margin-left: auto;
+    }
+
+    .ct-split-view {
+        flex-direction: column;
+    }
+
+    .ct-tree {
+        flex: none;
+        max-width: 100%;
+        min-height: 200px;
+        max-height: 300px;
+        border-right: none;
+        border-bottom: 1px solid var(--ct-border-color);
+        resize: vertical;
+    }
+
+    .ct-preview-panel {
+        min-height: 200px;
+    }
+}

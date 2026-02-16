@@ -1,0 +1,95 @@
+/**
+ * Button Components
+ */
+
+.ct-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 12px;
+    font-size: 14px;
+    font-family: var(--ct-font-family);
+    font-weight: 400;
+    color: var(--ct-text-default);
+    background-color: var(--ct-button-bg);
+    border: 1px solid var(--ct-button-border);
+    border-radius: var(--ct-border-radius);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.ct-button:hover {
+    background-color: var(--ct-button-bg-hover);
+    border-color: var(--ct-border-color);
+}
+
+.ct-button:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--ct-focus-ring);
+}
+
+.ct-button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.ct-button .gl-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.ct-btn-icon {
+    padding: 6px;
+    min-width: 32px;
+}
+
+.ct-load-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ct-load-btn .gl-icon {
+    width: 16px;
+    height: 16px;
+}
+
+.ct-view-mode-group {
+    margin-left: auto;
+}
+
+.ct-button-group .ct-btn-icon.ct-view-mode-active {
+    background: #0969da;
+    color: white;
+    border-color: #0969da;
+}
+
+.ct-button-group .ct-btn-icon.ct-view-mode-active:hover {
+    background: #0860ca;
+}
+
+/* Branch history commit buttons */
+.ct-commit-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px 8px;
+    margin-left: 4px;
+    background-color: var(--ct-button-bg);
+    border: 1px solid var(--ct-button-border);
+    border-radius: var(--ct-border-radius);
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+.ct-commit-btn:hover {
+    background-color: var(--ct-button-bg-hover);
+}
+
+.ct-commit-btn .gl-icon {
+    width: 14px;
+    height: 14px;
+    color: var(--ct-icon-color);
+}

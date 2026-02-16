@@ -1,14 +1,33 @@
 /**
  * GitLab Commit Tree View
  * @fileoverview Main entry point - Displays file tree for commits, comparisons, and branch history
- * @module commit-tree
  */
 
-import * as config from './commit-tree-config.js';
-import * as utils from './commit-tree-utils.js';
-import * as api from './commit-tree-api.js';
-import * as renderer from './commit-tree-renderer.js';
-import './commit-tree.css';
+import { icons, cssClasses } from './config/constants.js';
+import { createElement, waitForElement } from './utils/dom.js';
+import { 
+    extractProjectAndCommitInfo, 
+    getPageType, 
+    findCommitElements, 
+    extractCommitShaFromElement 
+} from './utils/gitlab.js';
+import { fetchAllFilesWithPagination } from './api/client.js';
+import { processFilesFromApiResponse, buildFileTree } from './api/transformer.js';
+import { 
+    createTreeContainer, 
+    createLoadingIndicator, 
+    createErrorMessage, 
+    setupFullscreen 
+} from './components/common/container.js';
+import { 
+    setProjectContext, 
+    renderTree, 
+    setupSearch, 
+    setupViewModeToggle, 
+    expandAllFolders, 
+    collapseAllFolders 
+} from './components/tree/renderer.js';
+import './styles/main.css';
 
 (function() {
     'use strict';
@@ -18,14 +37,14 @@ import './commit-tree.css';
      * @returns {Promise<void>}
      */
     async function initCommitOrComparePage() {
-        const projectInfo = utils.extractProjectAndCommitInfo();
+        const projectInfo = extractProjectAndCommitInfo();
 
         if (!projectInfo.projectPath ||
             (!projectInfo.commitSha && (!projectInfo.sourceBranch || !projectInfo.targetBranch))) {
             return;
         }
 
-        renderer.setProjectContext(projectInfo, projectInfo.commitSha);
+        setProjectContext(projectInfo, projectInfo.commitSha);
 
         let targetInsertionPoint;
         if (projectInfo.isCommitPage) {
@@ -43,29 +62,29 @@ import './commit-tree.css';
         }
 
         const pageTypeTitle = projectInfo.isCommitPage ? 'commit' : 'comparaison';
-        const wrapper = utils.createElement('div', { className: 'ct-wrapper' });
+        const wrapper = createElement('div', { className: 'ct-wrapper' });
 
-        const loadButton = utils.createElement('button', {
-            className: `${config.cssClasses.button} ct-load-btn`
-        }, `${config.icons.tree} <span>Charger l'arborescence</span>`);
+        const loadButton = createElement('button', {
+            className: `${cssClasses.button} ct-load-btn`
+        }, `${icons.tree} <span>Charger l'arborescence</span>`);
 
         wrapper.appendChild(loadButton);
         targetInsertionPoint.parentNode.insertBefore(wrapper, targetInsertionPoint);
 
         loadButton.onclick = async () => {
             loadButton.disabled = true;
-            loadButton.innerHTML = `${config.icons.tree} <span>Chargement...</span>`;
+            loadButton.innerHTML = `${icons.tree} <span>Chargement...</span>`;
 
-            const loading = renderer.createLoadingIndicator('Chargement des fichiers via l\'API GitLab');
+            const loading = createLoadingIndicator(`Chargement des fichiers via l'API GitLab`);
             wrapper.appendChild(loading);
 
             try {
-                const diffData = await api.fetchAllFilesWithPagination(
+                const diffData = await fetchAllFilesWithPagination(
                     projectInfo,
                     (msg) => { loading.innerHTML = `${msg} <span class="ct-spinner"></span>`; }
                 );
 
-                const fileData = api.processFilesFromApiResponse(
+                const fileData = processFilesFromApiResponse(
                     diffData, 
                     projectInfo.isComparePage, 
                     projectInfo.commitSha || projectInfo.sourceBranch
@@ -73,18 +92,18 @@ import './commit-tree.css';
                 loading.remove();
 
                 if (fileData.length === 0) {
-                    const error = renderer.createErrorMessage(
+                    const error = createErrorMessage(
                         `Aucun fichier trouvé pour ${projectInfo.isCommitPage ? 'ce commit' : 'cette comparaison'}.`
                     );
                     wrapper.appendChild(error);
-                    loadButton.innerHTML = `${config.icons.tree} <span>Réessayer</span>`;
+                    loadButton.innerHTML = `${icons.tree} <span>Réessayer</span>`;
                     loadButton.disabled = false;
                     return;
                 }
 
                 loadButton.remove();
 
-                const fileTree = api.buildFileTree(fileData);
+                const fileTree = buildFileTree(fileData);
                 const {
                     container,
                     searchInput,
@@ -95,22 +114,22 @@ import './commit-tree.css';
                     viewDiffBtn,
                     viewFullBtn,
                     fullscreenBtn
-                } = renderer.createTreeContainer(`Vue en arborescence (${pageTypeTitle})`, fileData.length);
+                } = createTreeContainer(`Vue en arborescence (${pageTypeTitle})`, fileData.length);
 
                 wrapper.appendChild(container);
-                renderer.renderTree(treeView, fileTree, 0, '', null, previewPanel);
-                renderer.setupSearch(searchInput, treeView, fileTree, null, previewPanel);
-                renderer.setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel);
-                renderer.setupFullscreen(container, fullscreenBtn);
+                renderTree(treeView, fileTree, 0, '', null, previewPanel);
+                setupSearch(searchInput, treeView, fileTree, null, previewPanel);
+                setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel);
+                setupFullscreen(container, fullscreenBtn);
 
-                expandAllBtn.onclick = () => renderer.expandAllFolders(treeView);
-                collapseAllBtn.onclick = () => renderer.collapseAllFolders(treeView);
+                expandAllBtn.onclick = () => expandAllFolders(treeView);
+                collapseAllBtn.onclick = () => collapseAllFolders(treeView);
 
             } catch (error) {
                 loading.remove();
-                const errorEl = renderer.createErrorMessage(`Erreur lors de l'accès à l'API GitLab: ${error.message}`);
+                const errorEl = createErrorMessage(`Erreur lors de l'accès à l'API GitLab: ${error.message}`);
                 wrapper.appendChild(errorEl);
-                loadButton.innerHTML = `${config.icons.tree} <span>Réessayer</span>`;
+                loadButton.innerHTML = `${icons.tree} <span>Réessayer</span>`;
                 loadButton.disabled = false;
             }
         };
@@ -121,16 +140,16 @@ import './commit-tree.css';
      * @returns {Promise<void>}
      */
     async function initBranchHistory() {
-        const projectInfo = utils.extractProjectAndCommitInfo();
+        const projectInfo = extractProjectAndCommitInfo();
         if (!projectInfo.projectPath) {
             return;
         }
 
         const processCommits = () => {
-            const commitElements = utils.findCommitElements();
+            const commitElements = findCommitElements();
             commitElements.forEach(commitElement => {
-                const commitSha = utils.extractCommitShaFromElement(commitElement);
-                if (commitSha && !commitElement.querySelector(`.${config.cssClasses.commitTreeButton}`)) {
+                const commitSha = extractCommitShaFromElement(commitElement);
+                if (commitSha && !commitElement.querySelector(`.${cssClasses.commitTreeButton}`)) {
                     attachTreeButtonToCommit(commitElement, commitSha, projectInfo);
                 }
             });
@@ -177,21 +196,21 @@ import './commit-tree.css';
         let actionsContainer = commitElement.querySelector('.commit-sha-group.btn-group');
 
         if (!actionsContainer) {
-            actionsContainer = utils.createElement('div', { className: 'commit-sha-group btn-group' });
+            actionsContainer = createElement('div', { className: 'commit-sha-group btn-group' });
             commitElement.appendChild(actionsContainer);
         }
 
         const nextSibling = commitElement.nextElementSibling;
-        if (nextSibling && nextSibling.classList.contains(config.cssClasses.commitTreeContainer)) {
+        if (nextSibling && nextSibling.classList.contains(cssClasses.commitTreeContainer)) {
             return;
         }
 
-        const treeButton = utils.createElement('button', {
-            className: `${config.cssClasses.commitTreeButton} gl-button btn btn-icon btn-md btn-default has-tooltip`,
+        const treeButton = createElement('button', {
+            className: `${cssClasses.commitTreeButton} gl-button btn btn-icon btn-md btn-default has-tooltip`,
             title: 'Fichiers modifiés',
             'aria-label': 'Fichiers modifiés',
             dataset: { commitSha }
-        }, config.icons.tree);
+        }, icons.tree);
 
         treeButton.onclick = async (e) => {
             e.preventDefault();
@@ -211,36 +230,36 @@ import './commit-tree.css';
      */
     async function createTreeForCommit(commitSha, commitElement, buttonElement, projectInfo) {
         let existingContainer = commitElement.nextElementSibling;
-        if (existingContainer && existingContainer.classList.contains(config.cssClasses.commitTreeContainer)) {
+        if (existingContainer && existingContainer.classList.contains(cssClasses.commitTreeContainer)) {
             const isHidden = existingContainer.style.display === 'none';
             existingContainer.style.display = isHidden ? 'block' : 'none';
-            buttonElement.innerHTML = isHidden ? config.icons.close : config.icons.tree;
+            buttonElement.innerHTML = isHidden ? icons.close : icons.tree;
             return;
         }
 
-        renderer.setProjectContext(projectInfo, commitSha);
+        setProjectContext(projectInfo, commitSha);
 
-        const treeContainer = utils.createElement('div', { className: config.cssClasses.commitTreeContainer });
+        const treeContainer = createElement('div', { className: cssClasses.commitTreeContainer });
 
-        const loading = renderer.createLoadingIndicator('Chargement des fichiers');
+        const loading = createLoadingIndicator('Chargement des fichiers');
         treeContainer.appendChild(loading);
 
         commitElement.parentNode.insertBefore(treeContainer, commitElement.nextSibling);
-        buttonElement.innerHTML = config.icons.close;
+        buttonElement.innerHTML = icons.close;
 
         try {
-            const diffData = await api.fetchAllFilesWithPagination(projectInfo, null, commitSha);
-            const fileData = api.processFilesFromApiResponse(diffData, false, commitSha);
+            const diffData = await fetchAllFilesWithPagination(projectInfo, null, commitSha);
+            const fileData = processFilesFromApiResponse(diffData, false, commitSha);
 
             loading.remove();
 
             if (fileData.length === 0) {
-                const error = renderer.createErrorMessage('Aucun fichier trouvé pour ce commit.');
+                const error = createErrorMessage('Aucun fichier trouvé pour ce commit.');
                 treeContainer.appendChild(error);
                 return;
             }
 
-            const fileTree = api.buildFileTree(fileData);
+            const fileTree = buildFileTree(fileData);
             const {
                 container,
                 searchInput,
@@ -251,20 +270,20 @@ import './commit-tree.css';
                 viewDiffBtn,
                 viewFullBtn,
                 fullscreenBtn
-            } = renderer.createTreeContainer(`Commit ${commitSha.substring(0, 8)}`, fileData.length);
+            } = createTreeContainer(`Commit ${commitSha.substring(0, 8)}`, fileData.length);
 
             treeContainer.appendChild(container);
-            renderer.renderTree(treeView, fileTree, 0, '', commitSha, previewPanel);
-            renderer.setupSearch(searchInput, treeView, fileTree, commitSha, previewPanel);
-            renderer.setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel);
-            renderer.setupFullscreen(container, fullscreenBtn);
+            renderTree(treeView, fileTree, 0, '', commitSha, previewPanel);
+            setupSearch(searchInput, treeView, fileTree, commitSha, previewPanel);
+            setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel);
+            setupFullscreen(container, fullscreenBtn);
 
-            expandAllBtn.onclick = () => renderer.expandAllFolders(treeView);
-            collapseAllBtn.onclick = () => renderer.collapseAllFolders(treeView);
+            expandAllBtn.onclick = () => expandAllFolders(treeView);
+            collapseAllBtn.onclick = () => collapseAllFolders(treeView);
 
         } catch (error) {
             loading.remove();
-            const errorEl = renderer.createErrorMessage(`Erreur lors du chargement: ${error.message}`);
+            const errorEl = createErrorMessage(`Erreur lors du chargement: ${error.message}`);
             treeContainer.appendChild(errorEl);
         }
     }
@@ -274,7 +293,7 @@ import './commit-tree.css';
      * @returns {Promise<void>}
      */
     async function init() {
-        const { isCommitPage, isComparePage, isBranchHistoryPage } = utils.getPageType();
+        const { isCommitPage, isComparePage, isBranchHistoryPage } = getPageType();
 
         if (!isCommitPage && !isComparePage && !isBranchHistoryPage) {
             return;
@@ -282,10 +301,10 @@ import './commit-tree.css';
 
         try {
             if (isBranchHistoryPage) {
-                await utils.waitForElement('.commit, .commit-row, li[data-testid], .flex-list li, .content-list li');
+                await waitForElement('.commit, .commit-row, li[data-testid], .flex-list li, .content-list li');
                 await initBranchHistory();
             } else {
-                await utils.waitForElement('.commit, .diff-table, .diff-file, .file-holder, .diffs-container, .diff-stats');
+                await waitForElement('.commit, .diff-table, .diff-file, .file-holder, .diffs-container, .diff-stats');
                 await initCommitOrComparePage();
             }
         } catch (error) {

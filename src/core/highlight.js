@@ -1,6 +1,6 @@
 import hljs from 'highlight.js';
-import omnisKeywords from './omnis-keywords.json';
-import { fileLanguageMapping } from './commit-tree-config.js';
+import omnisKeywords from '../assets/omnis-keywords.json';
+import { fileLanguageMapping } from '../config/constants.js';
 
 // register Omnis language (custom)
 registerOmnisLanguage();
