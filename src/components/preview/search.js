@@ -221,7 +221,7 @@ export function setupPreviewSearch(previewPanel) {
     btnClose.onclick = () => toggleSearchBar(false);
 
     const abortController = new AbortController();
-    const container = previewPanel.closest('.ct-container');
+    const container = previewPanel.closest(`.${cssClasses.container}`);
 
     const handleKeydown = (e) => {
         const activeContainer = getActiveContainer(container);
@@ -284,7 +284,7 @@ function selectCurrentDiffBlock() {
     const currentElement = selection.getRangeAt(0).startContainer;
     const element = currentElement.nodeType === Node.ELEMENT_NODE ? currentElement : currentElement.parentElement;
     
-    const diffLine = element.closest('.ct-diff-line');
+    const diffLine = element.closest(`.${cssClasses.diffLine}`);
     if (diffLine) {
         let start = diffLine;
         while (start.previousElementSibling && 

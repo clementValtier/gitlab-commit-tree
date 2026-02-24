@@ -3,6 +3,8 @@
  * @fileoverview Functions for processing raw API responses and building tree structures
  */
 
+import { parseFileStats } from '../utils/helpers.js';
+
 /**
  * Processes raw API response into structured file data
  * @param {Object|Array} diffData - Raw diff data from API
@@ -86,7 +88,7 @@ export function buildFileTree(files) {
             const isFile = i === parts.length - 1;
 
             if (isFile) {
-                const stats = parseFileStatsFromDiff(file.diff_content);
+                const stats = parseFileStats(file.diff_content);
                 currentNode.children[part] = {
                     name: part,
                     type: 'file',
@@ -163,31 +165,6 @@ function collapseSingleChildFolders(node) {
             }
         }
     }
-}
-
-/**
- * Parses addition/deletion statistics from diff content
- * @param {string} diffContent - The diff content string
- * @returns {{additions: number, deletions: number}} Line statistics
- */
-function parseFileStatsFromDiff(diffContent) {
-    if (!diffContent) {
-        return { additions: 0, deletions: 0 };
-    }
-
-    const lines = diffContent.split('\n');
-    let additions = 0;
-    let deletions = 0;
-
-    lines.forEach(line => {
-        if (line.startsWith('+') && !line.startsWith('+++')) {
-            additions++;
-        } else if (line.startsWith('-') && !line.startsWith('---')) {
-            deletions++;
-        }
-    });
-
-    return { additions, deletions };
 }
 
 /**

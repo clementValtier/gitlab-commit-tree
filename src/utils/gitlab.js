@@ -3,6 +3,8 @@
  * @fileoverview Utility functions for GitLab URL extraction and navigation
  */
 
+import { gitlabSelectors } from '../config/constants.js';
+
 /**
  * Determines the type of GitLab page currently being viewed
  * @returns {{isCommitPage: boolean, isComparePage: boolean, isBranchHistoryPage: boolean}} Page type flags
@@ -77,7 +79,7 @@ export function extractProjectAndCommitInfo() {
  * @returns {HTMLElement[]} Array of commit elements
  */
 export function findCommitElements() {
-    const elements = document.querySelectorAll('.content-list li');
+    const elements = document.querySelectorAll(`${gitlabSelectors.current.commits} li`);
 
     if (elements.length > 0) {
         return Array.from(elements).filter(el => {
@@ -151,7 +153,7 @@ export function scrollToFileInCurrentPage(filePath) {
     }
 
     const fileHeaders = document.querySelectorAll(
-        '.file-header, .file-title, .diff-file-header, .file-header-content, .diff-header, .file-info'
+        [gitlabSelectors.current.fileHeader, gitlabSelectors.legacy.fileHeader].join(', ')
     );
 
     for (const header of fileHeaders) {

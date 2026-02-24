@@ -277,12 +277,12 @@ function autoExpandSingleChild(childContainer, child) {
  * Shows file in the preview panel
  */
 export function showFileInPreview(previewPanel, fileNode, mode = 'diff') {
-    const searchBar = previewPanel.querySelector('.ct-preview-search-bar');
+    const searchBar = previewPanel.querySelector(`.${cssClasses.previewSearchBar}`);
     previewPanel.innerHTML = '';
     if (searchBar) {
         previewPanel.appendChild(searchBar);
         searchBar.style.display = 'none';
-        const searchInput = searchBar.querySelector('.ct-preview-search-input');
+        const searchInput = searchBar.querySelector(`.${cssClasses.previewSearchInput}`);
         if (searchInput) searchInput.value = '';
     }
     previewPanel._currentFileNode = fileNode;

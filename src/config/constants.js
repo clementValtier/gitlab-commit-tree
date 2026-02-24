@@ -83,17 +83,6 @@ export function getFileIcon(filename) {
 }
 
 /**
- * File status indicators
- * @type {Object<string, {label: string, shortLabel: string}>}
- */
-export const fileStatus = {
-    added: { label: 'Added', shortLabel: 'A' },
-    modified: { label: 'Modified', shortLabel: 'M' },
-    deleted: { label: 'Deleted', shortLabel: 'D' },
-    renamed: { label: 'Renamed', shortLabel: 'R' }
-};
-
-/**
  * Pagination configuration
  * @type {Object}
  */

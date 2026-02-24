@@ -3,7 +3,7 @@
  * @fileoverview Main entry point - Displays file tree for commits, comparisons, and branch history
  */
 
-import { icons, cssClasses } from './config/constants.js';
+import { icons, cssClasses, gitlabSelectors } from './config/constants.js';
 import { createElement, waitForElement } from './utils/dom.js';
 import { 
     extractProjectAndCommitInfo, 
@@ -193,7 +193,7 @@ import './styles/main.css';
      * @param {Object} projectInfo - Project information
      */
     function attachTreeButtonToCommit(commitElement, commitSha, projectInfo) {
-        let actionsContainer = commitElement.querySelector('.commit-sha-group.btn-group');
+        let actionsContainer = commitElement.querySelector(gitlabSelectors.current.commitActions);
 
         if (!actionsContainer) {
             actionsContainer = createElement('div', { className: 'commit-sha-group btn-group' });
