@@ -100,10 +100,17 @@ export function renderDiff(container, diffContent, filePath) {
                     const changes = Diff.diffWords(removed[k].substring(1), newText);
                     renderModifiedLine(table, 'added', '', newLineNum++, changes, false, fileExt, filename);
                 }
-
-                i = j - 1;
-                continue;
+            } else {
+                for (const removedLine of removed) {
+                    renderNormalLine(table, removedLine, oldLineNum++, '', fileExt, filename);
+                }
+                for (const addedLine of added) {
+                    renderNormalLine(table, addedLine, '', newLineNum++, fileExt, filename);
+                }
             }
+
+            i = j - 1;
+            continue;
         }
 
         renderNormalLine(table, line, oldLineNum, newLineNum, fileExt, filename);
