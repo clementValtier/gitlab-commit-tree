@@ -107,6 +107,26 @@
     tab-size: 4;
 }
 
+.ct-preview-content:has(> .ct-diff-table) {
+    background-image: linear-gradient(
+        to right,
+        var(--ct-bg-subtle) 100px,
+        var(--ct-border-color) 100px,
+        var(--ct-border-color) 101px,
+        transparent 101px
+    );
+}
+
+.ct-preview-content:has(> .ct-full-file-container) {
+    background-image: linear-gradient(
+        to right,
+        var(--ct-bg-subtle) 50px,
+        var(--ct-border-color) 50px,
+        var(--ct-border-color) 51px,
+        transparent 51px
+    );
+}
+
 /* Preview Search Bar */
 .ct-preview-search-bar {
     border-bottom: 1px solid var(--ct-border-color);
