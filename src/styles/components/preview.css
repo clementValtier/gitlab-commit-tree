@@ -99,6 +99,7 @@
 .ct-preview-content {
     flex: 1;
     overflow: auto;
+    overscroll-behavior-x: none;
     font-family: var(--ct-font-mono);
     font-size: 12px;
     line-height: 1.5;

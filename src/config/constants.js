@@ -56,7 +56,10 @@ export const fileLanguageMapping = {
     'Dockerfile': 'dockerfile',
     'docker-compose.yml': 'yaml',
     'docker-compose.yaml': 'yaml',
-    'phpstan.dist.neon': 'yaml'
+    'phpstan.dist.neon': 'yaml',
+    'freetds.conf': 'ini',
+    'nginx.conf': 'nginx',
+    'supervisord.conf': 'ini'
 };
 
 /**
