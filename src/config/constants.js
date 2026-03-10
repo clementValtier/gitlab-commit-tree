@@ -3,21 +3,12 @@
  * @fileoverview Configuration constants, icons, and selectors for the commit tree view
  */
 
-import { icons } from '../assets/icons.js';
-export { icons };
+import { icons as gitlabIcons } from '../assets/icons.js';
+import { getClassWithColor } from 'file-icons-js';
+import 'file-icons-js/css/style.css';
 
-/**
- * File extension to icon mapping
- * @type {Object<string, string>}
- */
-export const fileTypeIcons = {
-    code: ['js', 'ts', 'jsx', 'tsx', 'vue', 'py', 'rb', 'php', 'java', 'c', 'cpp', 'h', 'hpp', 'cs', 'go', 'rs', 'swift', 'kt', 'scala', 'sh', 'bash', 'zsh', 'ps1', 'pl', 'r', 'lua', 'ex', 'exs', 'clj', 'hs', 'elm', 'erl'],
-    config: ['json', 'yaml', 'yml', 'toml', 'xml', 'ini', 'cfg', 'conf', 'env', 'properties', 'gradle', 'pom', 'lock', 'gitignore', 'dockerignore', 'editorconfig', 'eslintrc', 'prettierrc', 'babelrc'],
-    text: ['md', 'txt', 'rst', 'doc', 'docx', 'pdf', 'rtf', 'tex', 'csv', 'log'],
-    image: ['png', 'jpg', 'jpeg', 'gif', 'svg', 'webp', 'ico', 'bmp', 'tiff'],
-    style: ['css', 'scss', 'sass', 'less', 'styl'],
-    html: ['html', 'htm', 'xhtml', 'ejs', 'hbs', 'pug', 'jade']
-};
+export { gitlabIcons as icons };
+
 
 /**
  * Mapping de fichiers spécifiques vers les langages highlight.js
@@ -49,6 +40,7 @@ export const fileLanguageMapping = {
     '.prettierrc': 'json',
     '.babelrc': 'json',
     '.stylelintrc': 'json',
+    '.jshintrc': 'json',
     'tsconfig.json': 'json',
     'jsconfig.json': 'json',
     '.mailmap': 'ini',
@@ -63,26 +55,18 @@ export const fileLanguageMapping = {
 };
 
 /**
- * Gets the appropriate icon for a file based on its extension
+ * Gets the appropriate icon for a file based on its name and extension
  * @param {string} filename - The filename
- * @returns {string} The SVG icon string
+ * @returns {string|Object} The SVG icon string or an object with icon properties
  */
 export function getFileIcon(filename) {
-    const ext = filename.split('.').pop()?.toLowerCase() || '';
+    const iconClass = getClassWithColor(filename);
     
-    if (fileTypeIcons.code.includes(ext) || fileTypeIcons.style.includes(ext) || fileTypeIcons.html.includes(ext)) {
-        return icons.fileCode;
+    if (iconClass) {
+        return { type: 'class', value: iconClass };
     }
-    if (fileTypeIcons.config.includes(ext)) {
-        return icons.fileConfig;
-    }
-    if (fileTypeIcons.image.includes(ext)) {
-        return icons.fileImage;
-    }
-    if (fileTypeIcons.text.includes(ext)) {
-        return icons.fileText;
-    }
-    return icons.file;
+    
+    return { type: 'class', value: 'text-icon' };
 }
 
 /**

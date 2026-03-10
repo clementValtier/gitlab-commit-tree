@@ -64,6 +64,20 @@
     height: 16px;
 }
 
+.ct-tree-item-icon[class*="-icon"] {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ct-tree-item-icon[class*="-icon"]:before {
+    margin: 0;
+    line-height: 1;
+}
+
 .ct-tree-item-name {
     flex: 1;
     font-size: 13px;

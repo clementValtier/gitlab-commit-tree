@@ -161,10 +161,11 @@ export async function fetchRepositoryTree(projectInfo, path = '', ref) {
  * @param {Object} projectInfo - Project information object
  * @param {string} filePath - Path of the file to fetch
  * @param {string} ref - Git reference (commit SHA or branch name)
+ * @param {boolean} [skipDecode=false] - If true, returns raw base64 content without decoding
  * @returns {Promise<{content: string, encoding: string, size: number, file_name: string}>}
  * @throws {Error} When the API request fails
  */
-export async function fetchFileContent(projectInfo, filePath, ref) {
+export async function fetchFileContent(projectInfo, filePath, ref, skipDecode = false) {
     const gitlabBaseUrl = window.location.origin;
     const encodedProjectPath = encodeURIComponent(projectInfo.projectPath);
     const encodedFilePath = encodeURIComponent(filePath);
@@ -187,7 +188,7 @@ export async function fetchFileContent(projectInfo, filePath, ref) {
     const data = await response.json();
     
     let decodedContent = data.content;
-    if (data.encoding === 'base64') {
+    if (data.encoding === 'base64' && !skipDecode) {
         const blob = await fetch(`data:application/octet-stream;base64,${data.content}`).then(r => r.blob());
         decodedContent = await blob.text();
     }

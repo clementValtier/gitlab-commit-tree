@@ -1,7 +1,7 @@
 {
   "name": "gitlab-commit-tree",
   "displayName": "GitLab Commit Tree",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "description": "Affiche une arborescence des fichiers modifiés dans les commits, comparaisons et historiques de branches GitLab",
   "scripts": {
     "test": "jest",
@@ -24,7 +24,10 @@
     "vite": "^7.3.1"
   },
   "dependencies": {
+    "binary-extensions": "^3.1.0",
     "diff": "^8.0.3",
-    "highlight.js": "^11.11.1"
+    "file-icons-js": "^1.1.0",
+    "highlight.js": "^11.11.1",
+    "mime": "^4.1.0"
   }
 }

@@ -20,10 +20,13 @@
         "commit-tree.js"
       ],
       "css": [
-        "commit-tree.css"
+        "assets/commit-tree.css"
       ],
       "run_at": "document_end"
     }
+  ],
+  "web_accessible_resources": [
+    "assets/*.woff2"
   ],
   "browser_specific_settings": {
     "gecko": {

@@ -5,7 +5,7 @@
 
 import { icons, cssClasses, getFileIcon } from '../../config/constants.js';
 import { createElement } from '../../utils/dom.js';
-import { debounce } from '../../utils/helpers.js';
+import { debounce, isImageFile, isPdfFile, isBinaryFile, getMimeType } from '../../utils/helpers.js';
 import { scrollToFileInCurrentPage, navigateToFile } from '../../utils/gitlab.js';
 import { highlightCode } from '../../core/highlight.js';
 import { fetchFileContent, fetchDiffForPath } from '../../api/client.js';
@@ -195,9 +195,16 @@ function createTreeItem(child, level, isCollapsible) {
         style: { visibility: isCollapsible ? 'visible' : 'hidden' }
     }, icons.chevronRight);
 
+    const iconData = child.type === 'folder' ? { type: 'svg', value: icons.folderClosed } : getFileIcon(child.name);
     const icon = createElement('span', {
         className: cssClasses.treeItemIcon
-    }, child.type === 'folder' ? icons.folderClosed : getFileIcon(child.name));
+    });
+    
+    if (iconData.type === 'svg') {
+        icon.innerHTML = iconData.value;
+    } else {
+        icon.className += ' ' + iconData.value;
+    }
 
     const name = createElement('span', {
         className: cssClasses.treeItemName
@@ -398,10 +405,27 @@ async function renderFullFileContent(container, fileNode, refOverride = null) {
     }
 
     const ref = refOverride || fileNode.ref || currentCommitSha || currentProjectInfo.commitSha || currentProjectInfo.sourceBranch || currentProjectInfo.branchName || 'main';
+    const filename = fileNode.name;
+    const fileExt = filename.split('.').pop()?.toLowerCase() || '';
+
+    if (isImageFile(fileExt)) {
+        await renderImageContent(container, fileNode, ref, fileExt);
+        return;
+    }
+
+    if (isPdfFile(fileExt)) {
+        await renderPdfContent(container, fileNode, ref);
+        return;
+    }
+
+    if (isBinaryFile(fileExt)) {
+        renderBinaryContent(container, fileNode);
+        return;
+    }
+
     const cacheKey = `${currentProjectInfo.projectPath}:${fileNode.path}@${ref}`;
-    
     let fileContent = fullFileCache.get(cacheKey);
-    
+
     if (!fileContent) {
         const loading = createLoadingIndicator('Chargement du fichier...');
         container.appendChild(loading);
@@ -420,10 +444,7 @@ async function renderFullFileContent(container, fileNode, refOverride = null) {
         }
     }
 
-    const filename = fileNode.name;
-    const fileExt = filename.split('.').pop()?.toLowerCase() || '';
     const lines = fileContent.split('\n');
-
     const table = createElement('div', { className: cssClasses.fullFileContainer });
 
     lines.forEach((line, index) => {
@@ -444,6 +465,103 @@ async function renderFullFileContent(container, fileNode, refOverride = null) {
     });
 
     container.appendChild(table);
+}
+
+/**
+ * Renders an image file in the preview panel
+ */
+async function renderImageContent(container, fileNode, ref, fileExt) {
+    const cacheKey = `img:${currentProjectInfo.projectPath}:${fileNode.path}@${ref}`;
+    let base64 = fullFileCache.get(cacheKey);
+
+    if (!base64) {
+        const loading = createLoadingIndicator('Chargement de l\'image...');
+        container.appendChild(loading);
+
+        try {
+            const fileData = await fetchFileContent(currentProjectInfo, fileNode.path, ref, true);
+            base64 = fileData.content;
+            fullFileCache.set(cacheKey, base64);
+            loading.remove();
+        } catch (error) {
+            loading.remove();
+            const errorDiv = createElement('div', { className: 'ct-diff-empty ct-diff-error' });
+            errorDiv.textContent = `Erreur lors du chargement de l'image: ${error.message}`;
+            container.appendChild(errorDiv);
+            return;
+        }
+    }
+
+    const mimeType = getMimeType(fileExt);
+    const wrapper = createElement('div', { className: 'ct-preview-image-wrapper' });
+    const img = createElement('img', {
+        className: 'ct-preview-image',
+        src: `data:${mimeType};base64,${base64}`,
+        alt: fileNode.name
+    });
+    wrapper.appendChild(img);
+    container.appendChild(wrapper);
+}
+
+/**
+ * Renders a PDF file in the preview panel
+ */
+async function renderPdfContent(container, fileNode, ref) {
+    const cacheKey = `pdf:${currentProjectInfo.projectPath}:${fileNode.path}@${ref}`;
+    let base64 = fullFileCache.get(cacheKey);
+
+    if (!base64) {
+        const loading = createLoadingIndicator('Chargement du PDF...');
+        container.appendChild(loading);
+
+        try {
+            const fileData = await fetchFileContent(currentProjectInfo, fileNode.path, ref, true);
+            base64 = fileData.content;
+            fullFileCache.set(cacheKey, base64);
+            loading.remove();
+        } catch (error) {
+            loading.remove();
+            const errorDiv = createElement('div', { className: 'ct-diff-empty ct-diff-error' });
+            errorDiv.textContent = `Erreur lors du chargement du PDF: ${error.message}`;
+            container.appendChild(errorDiv);
+            return;
+        }
+    }
+
+    const wrapper = createElement('div', { className: 'ct-preview-pdf-wrapper' });
+    const embed = createElement('embed', {
+        className: 'ct-preview-pdf',
+        src: `data:application/pdf;base64,${base64}`,
+        type: 'application/pdf',
+        width: '100%',
+        height: '100%'
+    });
+    wrapper.appendChild(embed);
+    container.appendChild(wrapper);
+}
+
+/**
+ * Renders a placeholder for non-previewable binary files
+ */
+function renderBinaryContent(container, fileNode) {
+    const div = createElement('div', { className: 'ct-diff-empty' });
+    
+    const iconData = getFileIcon(fileNode.name);
+    const icon = createElement('span', { className: 'ct-preview-icon' });
+    if (iconData.type === 'svg') {
+        icon.innerHTML = iconData.value;
+    } else {
+        icon.className += ' ' + iconData.value;
+    }
+
+    const text = createElement('span', { className: 'ct-preview-text' }, 'Fichier binaire — prévisualisation non disponible');
+    const size = fileNode.size
+        ? createElement('span', { className: 'ct-preview-text' }, `${(fileNode.size / 1024).toFixed(1)} Ko`)
+        : null;
+    div.appendChild(icon);
+    div.appendChild(text);
+    if (size) div.appendChild(size);
+    container.appendChild(div);
 }
 
 /**

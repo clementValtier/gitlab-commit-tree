@@ -37,7 +37,7 @@ export default defineConfig(({ mode }) => ({
       output: {
         entryFileNames: `[name].js`,
         chunkFileNames: `[name].js`,
-        assetFileNames: `[name].[ext]`
+        assetFileNames: `assets/[name].[ext]`
       },
       plugins: mode === 'production' ? [
         terser({
