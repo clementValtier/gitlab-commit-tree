@@ -11,13 +11,14 @@ import {
     findCommitElements, 
     extractCommitShaFromElement 
 } from './utils/gitlab.js';
-import { fetchAllFilesWithPagination } from './api/client.js';
-import { processFilesFromApiResponse, buildFileTree } from './api/transformer.js';
-import { 
-    createTreeContainer, 
-    createLoadingIndicator, 
-    createErrorMessage, 
-    setupFullscreen 
+import { fetchAllFilesWithPagination, fetchRepositoryTree } from './api/client.js';
+import { processFilesFromApiResponse, processFilesFromTreeApi, buildFileTree } from './api/transformer.js';
+import {
+    createTreeContainer,
+    createLoadingIndicator,
+    createErrorMessage,
+    setupFullscreen,
+    setupCollapse
 } from './components/common/container.js';
 import { 
     setProjectContext, 
@@ -106,6 +107,8 @@ import './styles/main.css';
                 const fileTree = buildFileTree(fileData);
                 const {
                     container,
+                    toolbar,
+                    splitView,
                     searchInput,
                     treeView,
                     previewPanel,
@@ -113,7 +116,8 @@ import './styles/main.css';
                     collapseAllBtn,
                     viewDiffBtn,
                     viewFullBtn,
-                    fullscreenBtn
+                    fullscreenBtn,
+                    collapseBtn
                 } = createTreeContainer(`Vue en arborescence (${pageTypeTitle})`, fileData.length);
 
                 wrapper.appendChild(container);
@@ -121,6 +125,7 @@ import './styles/main.css';
                 setupSearch(searchInput, treeView, fileTree, null, previewPanel);
                 setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel);
                 setupFullscreen(container, fullscreenBtn);
+                setupCollapse(collapseBtn, toolbar, splitView);
 
                 expandAllBtn.onclick = () => expandAllFolders(treeView);
                 collapseAllBtn.onclick = () => collapseAllFolders(treeView);
@@ -262,6 +267,8 @@ import './styles/main.css';
             const fileTree = buildFileTree(fileData);
             const {
                 container,
+                toolbar,
+                splitView,
                 searchInput,
                 treeView,
                 previewPanel,
@@ -269,7 +276,8 @@ import './styles/main.css';
                 collapseAllBtn,
                 viewDiffBtn,
                 viewFullBtn,
-                fullscreenBtn
+                fullscreenBtn,
+                collapseBtn
             } = createTreeContainer(`Commit ${commitSha.substring(0, 8)}`, fileData.length);
 
             treeContainer.appendChild(container);
@@ -277,6 +285,7 @@ import './styles/main.css';
             setupSearch(searchInput, treeView, fileTree, commitSha, previewPanel);
             setupViewModeToggle(viewDiffBtn, viewFullBtn, previewPanel);
             setupFullscreen(container, fullscreenBtn);
+            setupCollapse(collapseBtn, toolbar, splitView);
 
             expandAllBtn.onclick = () => expandAllFolders(treeView);
             collapseAllBtn.onclick = () => collapseAllFolders(treeView);
@@ -289,13 +298,116 @@ import './styles/main.css';
     }
 
     /**
+     * Initializes the tree view for a repository tree page (/-/tree/)
+     * @returns {Promise<void>}
+     */
+    async function initTreePage() {
+        const projectInfo = extractProjectAndCommitInfo();
+
+        if (!projectInfo.projectPath || !projectInfo.branchName) {
+            return;
+        }
+
+        setProjectContext(projectInfo);
+
+        const tableHolder = document.querySelector(gitlabSelectors.current.treeTableHolder);
+        if (!tableHolder) {
+            return;
+        }
+
+        const wrapper = createElement('div', { className: 'ct-wrapper' });
+
+        const loadButton = createElement('button', {
+            className: `${cssClasses.button} ct-load-btn`
+        }, `${icons.tree} <span>Charger l'arborescence</span>`);
+
+        wrapper.appendChild(loadButton);
+        tableHolder.parentNode.insertBefore(wrapper, tableHolder.nextSibling);
+
+        loadButton.onclick = async () => {
+            loadButton.disabled = true;
+            loadButton.innerHTML = `${icons.tree} <span>Chargement...</span>`;
+
+            const loading = createLoadingIndicator(`Chargement des fichiers via l'API GitLab`);
+            wrapper.appendChild(loading);
+
+            try {
+                const items = await fetchRepositoryTree(
+                    projectInfo,
+                    projectInfo.currentPath,
+                    projectInfo.branchName
+                );
+
+                const fileData = processFilesFromTreeApi(items, projectInfo.branchName);
+                loading.remove();
+
+                if (fileData.length === 0) {
+                    const error = createErrorMessage('Aucun fichier trouvé dans ce dossier.');
+                    wrapper.appendChild(error);
+                    loadButton.innerHTML = `${icons.tree} <span>Réessayer</span>`;
+                    loadButton.disabled = false;
+                    return;
+                }
+
+                loadButton.remove();
+
+                const fileTree = buildFileTree(fileData);
+                const title = projectInfo.currentPath
+                    ? `Arborescence : ${projectInfo.currentPath}`
+                    : `Arborescence : ${projectInfo.branchName}`;
+
+                const {
+                    container,
+                    toolbar,
+                    splitView,
+                    searchInput,
+                    treeView,
+                    previewPanel,
+                    expandAllBtn,
+                    collapseAllBtn,
+                    viewDiffBtn,
+                    viewFullBtn,
+                    fullscreenBtn,
+                    collapseBtn
+                } = createTreeContainer(title, fileData.length);
+
+                // Mode navigation : vue fichier complet uniquement, pas de toggle diff/full
+                viewDiffBtn.remove();
+                viewFullBtn.classList.add(cssClasses.viewModeActive);
+                previewPanel._viewMode = 'full';
+
+                const placeholderText = container.querySelector('.ct-preview-text');
+                if (placeholderText) {
+                    placeholderText.textContent = 'Sélectionnez un fichier pour voir son contenu';
+                }
+
+                wrapper.appendChild(container);
+                renderTree(treeView, fileTree, 0, '', null, previewPanel);
+                setupSearch(searchInput, treeView, fileTree, null, previewPanel);
+                setupFullscreen(container, fullscreenBtn);
+                setupCollapse(collapseBtn, toolbar, splitView);
+
+                expandAllBtn.onclick = () => expandAllFolders(treeView);
+                collapseAllBtn.onclick = () => collapseAllFolders(treeView);
+
+            } catch (error) {
+                loading.remove();
+                const errorEl = createErrorMessage(`Erreur lors de l'accès à l'API GitLab: ${error.message}`);
+                wrapper.appendChild(errorEl);
+                loadButton.innerHTML = `${icons.tree} <span>Réessayer</span>`;
+                loadButton.disabled = false;
+            }
+        };
+    }
+
+    /**
      * Main initialization function
      * @returns {Promise<void>}
      */
     async function init() {
-        const { isCommitPage, isComparePage, isBranchHistoryPage } = getPageType();
+        const { isCommitPage, isComparePage, isBranchHistoryPage, isTreePage } = getPageType();
 
-        if (!isCommitPage && !isComparePage && !isBranchHistoryPage) {
+        if (!isCommitPage && !isComparePage && !isBranchHistoryPage && !isTreePage) {
             return;
         }
 
@@ -303,6 +415,9 @@ import './styles/main.css';
             if (isBranchHistoryPage) {
                 await waitForElement('.commit, .commit-row, li[data-testid], .flex-list li, .content-list li');
                 await initBranchHistory();
+            } else if (isTreePage) {
+                await waitForElement('#tree-holder .tree-content-holder .table-holder, .tree-content-holder, #tree-holder');
+                await initTreePage();
             } else {
                 await waitForElement('.commit, .diff-table, .diff-file, .file-holder, .diffs-container, .diff-stats');
                 await initCommitOrComparePage();
@@ -312,6 +427,52 @@ import './styles/main.css';
         }
     }
 
+    /**
+     * Cleans up all injected CT elements and resets project context
+     */
+    function cleanup() {
+        document.querySelectorAll('.ct-wrapper').forEach(el => el.remove());
+        setProjectContext(null, null);
+    }
+
+    /**
+     * Sets up listeners for GitLab SPA navigation (pushState / popstate / title change)
+     */
+    function setupNavigationListener() {
+        let lastUrl = location.href;
+
+        const onNavigate = () => {
+            const currentUrl = location.href;
+            if (currentUrl === lastUrl) return;
+            lastUrl = currentUrl;
+            cleanup();
+            setTimeout(init, 50);
+        };
+
+        // Primary: MutationObserver on document.title
+        // Works in Firefox content scripts (XrayWrapper allows observing DOM nodes)
+        // GitLab updates the title on every SPA navigation
+        const titleEl = document.querySelector('title');
+        if (titleEl) {
+            new MutationObserver(onNavigate).observe(titleEl, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+        }
+
+        // Secondary: history.pushState override (effective in Chromium)
+        const originalPushState = history.pushState.bind(history);
+        history.pushState = (...args) => {
+            originalPushState(...args);
+            onNavigate();
+        };
+
+        // Back/forward navigation
+        window.addEventListener('popstate', onNavigate);
+    }
+
+    setupNavigationListener();
     window.addEventListener('load', init);
 
 })();

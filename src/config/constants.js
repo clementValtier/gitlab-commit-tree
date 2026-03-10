@@ -104,7 +104,8 @@ export const gitlabSelectors = {
         container: '.content-wrapper, main, .container-fluid',
         commits: '.content-list.commit-list.flex-list',
         commitRow: '.commit-row, .commit-item, .commit-row-description',
-        commitActions: '.commit-sha-group.btn-group'
+        commitActions: '.commit-sha-group.btn-group',
+        treeTableHolder: '#tree-holder .tree-content-holder .table-holder'
     },
     legacy: {
         files: '.file-holder, .tree-holder, .diff-files',

@@ -10,9 +10,11 @@
         "https://gitlab.equation.fr/*/commit/*",
         "https://gitlab.equation.fr/*/compare/*",
         "https://gitlab.equation.fr/*/commits/*",
+        "https://gitlab.equation.fr/*/tree/*",
         "https://gitlab.com/*/commit/*",
         "https://gitlab.com/*/compare/*",
-        "https://gitlab.com/*/commits/*"
+        "https://gitlab.com/*/commits/*",
+        "https://gitlab.com/*/tree/*"
       ],
       "js": [
         "commit-tree.js"

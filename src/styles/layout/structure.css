@@ -23,6 +23,20 @@
     background-color: var(--ct-bg-subtle);
 }
 
+.ct-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.ct-container-fullscreen .ct-collapse-btn {
+    display: none;
+}
+
+.ct-container-collapsed .ct-header {
+    border-bottom: none;
+}
+
 .ct-header-title {
     font-weight: 600;
     font-size: 14px;

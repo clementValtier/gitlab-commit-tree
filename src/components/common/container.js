@@ -17,10 +17,21 @@ import { setupPreviewSearch } from '../preview/search.js';
 export function createTreeContainer(title, fileCount) {
     const container = createElement('div', { className: cssClasses.container });
 
-    const header = createElement('div', { className: cssClasses.header }, `
-        <span class="ct-header-title">${title}</span>
-        <span class="ct-header-count">${fileCount} fichier(s)</span>
-    `);
+    const header = createElement('div', { className: cssClasses.header });
+
+    const headerTitle = createElement('span', { className: 'ct-header-title' }, title);
+
+    const headerRight = createElement('div', { className: 'ct-header-right' });
+    const headerCount = createElement('span', { className: 'ct-header-count' }, `${fileCount} fichier(s)`);
+    const collapseBtn = createElement('button', {
+        className: `${cssClasses.button} ct-btn-icon ct-collapse-btn`,
+        title: 'Réduire'
+    }, icons.chevronDown);
+    headerRight.appendChild(headerCount);
+    headerRight.appendChild(collapseBtn);
+
+    header.appendChild(headerTitle);
+    header.appendChild(headerRight);
 
     const toolbar = createElement('div', { className: cssClasses.toolbar });
 
@@ -98,6 +109,7 @@ export function createTreeContainer(title, fileCount) {
     return {
         container,
         toolbar,
+        splitView,
         searchInput,
         treeView,
         previewPanel,
@@ -105,7 +117,30 @@ export function createTreeContainer(title, fileCount) {
         collapseAllBtn,
         viewDiffBtn,
         viewFullBtn,
-        fullscreenBtn
+        fullscreenBtn,
+        collapseBtn
+    };
+}
+
+/**
+ * Sets up the collapse/expand toggle for the panel
+ * @param {HTMLElement} collapseBtn - Collapse button element
+ * @param {HTMLElement} toolbar - Toolbar element to hide/show
+ * @param {HTMLElement} splitView - Split view element to hide/show
+ */
+export function setupCollapse(collapseBtn, toolbar, splitView) {
+    if (!collapseBtn || !toolbar || !splitView) return;
+
+    let isCollapsed = false;
+
+    collapseBtn.onclick = () => {
+        isCollapsed = !isCollapsed;
+        const container = collapseBtn.closest(`.${cssClasses.container}`);
+        if (container) container.classList.toggle('ct-container-collapsed', isCollapsed);
+        toolbar.style.display = isCollapsed ? 'none' : '';
+        splitView.style.display = isCollapsed ? 'none' : '';
+        collapseBtn.innerHTML = isCollapsed ? icons.chevronRight : icons.chevronDown;
+        collapseBtn.title = isCollapsed ? 'Développer' : 'Réduire';
     };
 }
 

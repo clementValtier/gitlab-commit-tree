@@ -14,11 +14,13 @@ export function getPageType() {
     const isBranchHistoryPage = path.includes('/commits/');
     const isComparePage = path.includes('/compare/');
     const isCommitPage = !isBranchHistoryPage && path.includes('/commit/');
+    const isTreePage = path.includes('/-/tree/');
 
     return {
         isCommitPage,
         isComparePage,
-        isBranchHistoryPage
+        isBranchHistoryPage,
+        isTreePage
     };
 }
 
@@ -30,20 +32,23 @@ export function getPageType() {
  *   sourceBranch: string|null,
  *   targetBranch: string|null,
  *   branchName: string|null,
+ *   currentPath: string,
  *   isCommitPage: boolean,
  *   isComparePage: boolean,
- *   isBranchHistoryPage: boolean
+ *   isBranchHistoryPage: boolean,
+ *   isTreePage: boolean
  * }} Extracted information
  */
 export function extractProjectAndCommitInfo() {
-    const { isCommitPage, isComparePage, isBranchHistoryPage } = getPageType();
+    const { isCommitPage, isComparePage, isBranchHistoryPage, isTreePage } = getPageType();
     let projectPath = '';
     let commitSha = null;
     let sourceBranch = null;
     let targetBranch = null;
     let branchName = null;
+    let currentPath = '';
 
-    const pathMatch = window.location.pathname.match(/^(.*?)\/-\/(?:commit|commits|compare)/);
+    const pathMatch = window.location.pathname.match(/^(.*?)\/-\/(?:commit|commits|compare|tree)/);
     if (pathMatch) {
         projectPath = pathMatch[1].substr(1);
     }
@@ -60,6 +65,12 @@ export function extractProjectAndCommitInfo() {
     } else if (isBranchHistoryPage) {
         const branchMatch = window.location.pathname.match(/\/commits\/(.+?)(?:\?|$)/);
         branchName = branchMatch ? decodeURIComponent(branchMatch[1]) : 'main';
+    } else if (isTreePage) {
+        const treeMatch = window.location.pathname.match(/\/-\/tree\/([^\/]+)(\/(.*))?$/);
+        if (treeMatch) {
+            branchName = decodeURIComponent(treeMatch[1]);
+            currentPath = treeMatch[3] ? decodeURIComponent(treeMatch[3]) : '';
+        }
     }
 
     return {
@@ -68,9 +79,11 @@ export function extractProjectAndCommitInfo() {
         sourceBranch,
         targetBranch,
         branchName,
+        currentPath,
         isCommitPage,
         isComparePage,
-        isBranchHistoryPage
+        isBranchHistoryPage,
+        isTreePage
     };
 }
 
@@ -190,6 +203,8 @@ export function navigateToFile(filePath, projectInfo = null, specificCommitSha =
     } else if (projectInfo.isBranchHistoryPage) {
         const ref = specificCommitSha || projectInfo.branchName || 'main';
         fileUrl = `${gitlabBaseUrl}/${projectInfo.projectPath}/-/blob/${encodeURIComponent(ref)}/${filePath}`;
+    } else if (projectInfo.isTreePage) {
+        fileUrl = `${gitlabBaseUrl}/${projectInfo.projectPath}/-/blob/${encodeURIComponent(projectInfo.branchName)}/${filePath}`;
     } else {
         fileUrl = `${gitlabBaseUrl}/${projectInfo.projectPath}/-/blob/master/${filePath}`;
     }

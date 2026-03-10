@@ -121,6 +121,42 @@ export async function fetchAllFilesWithPagination(projectInfo, progressCallback,
 }
 
 /**
+ * Fetches the repository tree (file listing) for a given path and ref
+ * @param {Object} projectInfo - Project information object
+ * @param {string} [path=''] - Directory path to list (empty string for root)
+ * @param {string} ref - Git reference (branch name or commit SHA)
+ * @returns {Promise<Array>} Promise resolving to all tree items
+ * @throws {Error} When API requests fail
+ */
+export async function fetchRepositoryTree(projectInfo, path = '', ref) {
+    const gitlabBaseUrl = window.location.origin;
+    const encodedProjectPath = encodeURIComponent(projectInfo.projectPath);
+    const encodedRef = encodeURIComponent(ref);
+    const pathParam = path ? `&path=${encodeURIComponent(path)}` : '';
+
+    let allItems = [];
+    let currentPage = 1;
+    let hasMore = true;
+
+    while (hasMore) {
+        const url = `${gitlabBaseUrl}/api/v4/projects/${encodedProjectPath}/repository/tree?ref=${encodedRef}${pathParam}&recursive=true&per_page=100&page=${currentPage}`;
+        const { data, nextPage } = await fetchSinglePage(url);
+
+        if (Array.isArray(data)) {
+            allItems = allItems.concat(data);
+        }
+
+        if (nextPage && nextPage !== '') {
+            currentPage = parseInt(nextPage);
+        } else {
+            hasMore = false;
+        }
+    }
+
+    return allItems;
+}
+
+/**
  * Fetches the full content of a file from the GitLab API
  * @param {Object} projectInfo - Project information object
  * @param {string} filePath - Path of the file to fetch

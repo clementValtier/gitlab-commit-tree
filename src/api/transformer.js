@@ -59,6 +59,34 @@ export function processFilesFromApiResponse(diffData, isComparePage = false, ref
 }
 
 /**
+ * Processes raw repository tree API response into structured file data
+ * @param {Array<{id: string, name: string, type: string, path: string, mode: string}>} items - Raw tree items from API
+ * @param {string} ref - Git reference (branch name or commit SHA)
+ * @returns {Array<{
+ *   path: string,
+ *   old_path: string,
+ *   diff_index: number,
+ *   status: null,
+ *   diff_content: null,
+ *   has_diff_content: boolean,
+ *   ref: string
+ * }>} Processed file data array
+ */
+export function processFilesFromTreeApi(items, ref) {
+    return items
+        .filter(item => item.type === 'blob')
+        .map((item, index) => ({
+            path: item.path,
+            old_path: item.path,
+            diff_index: index,
+            status: null,
+            diff_content: null,
+            has_diff_content: false,
+            ref: ref
+        }));
+}
+
+/**
  * Builds a tree structure from a flat list of files
  * @param {Array<{
  *   path: string,
