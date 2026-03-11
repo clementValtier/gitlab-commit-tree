@@ -25,9 +25,6 @@
       "run_at": "document_end"
     }
   ],
-  "web_accessible_resources": [
-    "assets/*.woff2"
-  ],
   "browser_specific_settings": {
     "gecko": {
         "data_collection_permissions": {

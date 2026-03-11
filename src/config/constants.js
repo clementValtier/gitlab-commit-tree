@@ -4,8 +4,7 @@
  */
 
 import { icons as gitlabIcons } from '../assets/icons.js';
-import { getClassWithColor } from 'file-icons-js';
-import 'file-icons-js/css/style.css';
+import { fileExtensions, fileNames, defaultIcon, svgs } from 'virtual:material-icons';
 
 export { gitlabIcons as icons };
 
@@ -55,18 +54,19 @@ export const fileLanguageMapping = {
 };
 
 /**
- * Gets the appropriate icon for a file based on its name and extension
+ * Gets the appropriate SVG icon for a file based on its name and extension.
+ * Uses material-icon-theme associations (fileNames exact match, then fileExtensions).
  * @param {string} filename - The filename
- * @returns {string|Object} The SVG icon string or an object with icon properties
+ * @returns {{ type: 'svg', value: string }} SVG icon object
  */
 export function getFileIcon(filename) {
-    const iconClass = getClassWithColor(filename);
-    
-    if (iconClass) {
-        return { type: 'class', value: iconClass };
-    }
-    
-    return { type: 'class', value: 'text-icon' };
+    const lower = filename.toLowerCase();
+    const ext = lower.includes('.') ? lower.split('.').pop() : '';
+
+    const iconName = fileNames[lower] ?? fileExtensions[ext] ?? defaultIcon;
+    const svg = svgs[iconName] ?? svgs[defaultIcon] ?? '';
+
+    return { type: 'svg', value: svg };
 }
 
 /**

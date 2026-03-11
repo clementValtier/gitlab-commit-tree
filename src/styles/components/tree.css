@@ -64,6 +64,10 @@
     height: 16px;
 }
 
+.ct-tree-item-icon svg path:not([fill]) {
+    fill: none;
+}
+
 .ct-tree-item-icon[class*="-icon"] {
     font-size: 16px;
     width: 16px;
