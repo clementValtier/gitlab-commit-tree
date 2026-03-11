@@ -1,13 +1,15 @@
 {
   "name": "gitlab-commit-tree",
   "displayName": "GitLab Commit Tree",
-  "version": "3.4.1",
+  "version": "3.5.0",
   "description": "Affiche une arborescence des fichiers modifiés dans les commits, comparaisons et historiques de branches GitLab",
   "scripts": {
     "test": "jest",
     "dev": "vite build --mode development --watch",
     "build": "vite build",
-    "package": "npm run build && mkdir -p build && cd dist && zip -r ../build/gitlab-commit-tree.zip *"
+    "start": "npm run build && concurrently \"npm run dev\" \"web-ext run --source-dir=dist --firefox-profile=default-release\"",
+    "ext:lint": "web-ext lint --source-dir=dist",
+    "ext:build": "npm run build && web-ext build --source-dir=dist --artifacts-dir=build"
   },
   "jest": {
     "testEnvironment": "jsdom"
@@ -17,12 +19,14 @@
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.0",
     "babel-jest": "^30.2.0",
+    "concurrently": "^9.2.1",
     "jest": "^30.0.0",
     "jest-environment-jsdom": "^30.0.0",
     "material-icon-theme": "^5.32.0",
     "rollup-plugin-terser": "^7.0.2",
     "terser": "^5.46.0",
-    "vite": "^7.3.1"
+    "vite": "^7.3.1",
+    "web-ext": "^9.4.0"
   },
   "dependencies": {
     "binary-extensions": "^3.1.0",

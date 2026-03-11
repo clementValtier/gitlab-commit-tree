@@ -64,7 +64,7 @@
     height: 16px;
 }
 
-.ct-tree-item-icon svg path:not([fill]) {
+.ct-tree-item-icon svg[fill="none"] path:not([fill]) {
     fill: none;
 }
 

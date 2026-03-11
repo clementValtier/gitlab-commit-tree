@@ -5,7 +5,7 @@
 
 import * as Diff from 'diff';
 import { icons, cssClasses } from '../../config/constants.js';
-import { createElement } from '../../utils/dom.js';
+import { createElement, safeSetHTML } from '../../utils/dom.js';
 import { highlightCode } from '../../core/highlight.js';
 
 /**
@@ -34,7 +34,8 @@ export function toggleDiffView(item, fileNode) {
  */
 export function renderDiff(container, diffContent, filePath) {
     if (!diffContent) {
-        container.innerHTML = '<div class="ct-diff-empty"><span class="ct-diff-empty-text">Aucune différence disponible</span></div>';
+        const emptySpan = createElement('span', { className: 'ct-diff-empty-text' }, 'Aucune différence disponible');
+        container.appendChild(createElement('div', { className: 'ct-diff-empty' }, [emptySpan]));
         return;
     }
 
@@ -150,7 +151,7 @@ function renderModifiedLine(table, type, oldNum, newNum, changes, isRemoved, fil
             contentCell.appendChild(span);
         } else if (!part.added && !part.removed) {
             const span = createElement('span');
-            span.innerHTML = highlightCode(part.value, fileExt, filename);
+            safeSetHTML(span, highlightCode(part.value, fileExt, filename));
             contentCell.appendChild(span);
         }
     });
@@ -193,9 +194,9 @@ function renderNormalLine(table, line, oldLineNum, newLineNum, fileExt, filename
     const contentCell = createElement('span', { className: 'ct-line-content' });
 
     if (lineContent === '') {
-        contentCell.innerHTML = ' ';
+        contentCell.textContent = '\u00A0';
     } else {
-        contentCell.innerHTML = highlightCode(lineContent, fileExt, filename);
+        safeSetHTML(contentCell, highlightCode(lineContent, fileExt, filename));
     }
 
     lineRow.appendChild(oldNumCell);

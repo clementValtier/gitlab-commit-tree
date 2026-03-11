@@ -4,7 +4,7 @@
  */
 
 import { icons, cssClasses, gitlabSelectors } from './config/constants.js';
-import { createElement, waitForElement } from './utils/dom.js';
+import { createElement, safeSetHTML, waitForElement } from './utils/dom.js';
 import { 
     extractProjectAndCommitInfo, 
     getPageType, 
@@ -74,7 +74,7 @@ import './styles/main.css';
 
         loadButton.onclick = async () => {
             loadButton.disabled = true;
-            loadButton.innerHTML = `${icons.tree} <span>Chargement...</span>`;
+            safeSetHTML(loadButton, `${icons.tree} <span>Chargement...</span>`);
 
             const loading = createLoadingIndicator(`Chargement des fichiers via l'API GitLab`);
             wrapper.appendChild(loading);
@@ -82,7 +82,7 @@ import './styles/main.css';
             try {
                 const diffData = await fetchAllFilesWithPagination(
                     projectInfo,
-                    (msg) => { loading.innerHTML = `${msg} <span class="ct-spinner"></span>`; }
+                    (msg) => { safeSetHTML(loading, `${msg} <span class="ct-spinner"></span>`); }
                 );
 
                 const fileData = processFilesFromApiResponse(
@@ -97,7 +97,7 @@ import './styles/main.css';
                         `Aucun fichier trouvé pour ${projectInfo.isCommitPage ? 'ce commit' : 'cette comparaison'}.`
                     );
                     wrapper.appendChild(error);
-                    loadButton.innerHTML = `${icons.tree} <span>Réessayer</span>`;
+                    safeSetHTML(loadButton, `${icons.tree} <span>Réessayer</span>`);
                     loadButton.disabled = false;
                     return;
                 }
@@ -134,7 +134,7 @@ import './styles/main.css';
                 loading.remove();
                 const errorEl = createErrorMessage(`Erreur lors de l'accès à l'API GitLab: ${error.message}`);
                 wrapper.appendChild(errorEl);
-                loadButton.innerHTML = `${icons.tree} <span>Réessayer</span>`;
+                safeSetHTML(loadButton, `${icons.tree} <span>Réessayer</span>`);
                 loadButton.disabled = false;
             }
         };
@@ -238,7 +238,7 @@ import './styles/main.css';
         if (existingContainer && existingContainer.classList.contains(cssClasses.commitTreeContainer)) {
             const isHidden = existingContainer.style.display === 'none';
             existingContainer.style.display = isHidden ? 'block' : 'none';
-            buttonElement.innerHTML = isHidden ? icons.close : icons.tree;
+            safeSetHTML(buttonElement, isHidden ? icons.close : icons.tree);
             return;
         }
 
@@ -250,7 +250,7 @@ import './styles/main.css';
         treeContainer.appendChild(loading);
 
         commitElement.parentNode.insertBefore(treeContainer, commitElement.nextSibling);
-        buttonElement.innerHTML = icons.close;
+        safeSetHTML(buttonElement, icons.close);
 
         try {
             const diffData = await fetchAllFilesWithPagination(projectInfo, null, commitSha);
@@ -326,7 +326,7 @@ import './styles/main.css';
 
         loadButton.onclick = async () => {
             loadButton.disabled = true;
-            loadButton.innerHTML = `${icons.tree} <span>Chargement...</span>`;
+            safeSetHTML(loadButton, `${icons.tree} <span>Chargement...</span>`);
 
             const loading = createLoadingIndicator(`Chargement des fichiers via l'API GitLab`);
             wrapper.appendChild(loading);
@@ -344,7 +344,7 @@ import './styles/main.css';
                 if (fileData.length === 0) {
                     const error = createErrorMessage('Aucun fichier trouvé dans ce dossier.');
                     wrapper.appendChild(error);
-                    loadButton.innerHTML = `${icons.tree} <span>Réessayer</span>`;
+                    safeSetHTML(loadButton, `${icons.tree} <span>Réessayer</span>`);
                     loadButton.disabled = false;
                     return;
                 }
@@ -394,7 +394,7 @@ import './styles/main.css';
                 loading.remove();
                 const errorEl = createErrorMessage(`Erreur lors de l'accès à l'API GitLab: ${error.message}`);
                 wrapper.appendChild(errorEl);
-                loadButton.innerHTML = `${icons.tree} <span>Réessayer</span>`;
+                safeSetHTML(loadButton, `${icons.tree} <span>Réessayer</span>`);
                 loadButton.disabled = false;
             }
         };

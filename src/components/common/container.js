@@ -5,7 +5,7 @@
 
 import { icons } from '../../assets/icons.js';
 import { cssClasses } from '../../config/constants.js';
-import { createElement } from '../../utils/dom.js';
+import { createElement, safeSetHTML } from '../../utils/dom.js';
 import { setupPreviewSearch } from '../preview/search.js';
 
 /**
@@ -139,7 +139,7 @@ export function setupCollapse(collapseBtn, toolbar, splitView) {
         if (container) container.classList.toggle('ct-container-collapsed', isCollapsed);
         toolbar.style.display = isCollapsed ? 'none' : '';
         splitView.style.display = isCollapsed ? 'none' : '';
-        collapseBtn.innerHTML = isCollapsed ? icons.chevronRight : icons.chevronDown;
+        safeSetHTML(collapseBtn, isCollapsed ? icons.chevronRight : icons.chevronDown);
         collapseBtn.title = isCollapsed ? 'Développer' : 'Réduire';
     };
 }
@@ -154,7 +154,7 @@ export function setupFullscreen(container, fullscreenBtn) {
 
     const toggleFullscreen = () => {
         const isFullscreen = container.classList.toggle(cssClasses.containerFullscreen);
-        fullscreenBtn.innerHTML = isFullscreen ? icons.minimize : icons.maximize;
+        safeSetHTML(fullscreenBtn, isFullscreen ? icons.minimize : icons.maximize);
         fullscreenBtn.title = isFullscreen ? 'Quitter le plein écran' : 'Plein écran';
         document.body.style.overflow = isFullscreen ? 'hidden' : '';
     };
@@ -165,7 +165,7 @@ export function setupFullscreen(container, fullscreenBtn) {
         if (e.key === 'Escape' && container.classList.contains(cssClasses.containerFullscreen)) {
             e.preventDefault();
             container.classList.remove(cssClasses.containerFullscreen);
-            fullscreenBtn.innerHTML = icons.maximize;
+            safeSetHTML(fullscreenBtn, icons.maximize);
             fullscreenBtn.title = 'Plein écran';
             document.body.style.overflow = '';
         }

@@ -4,7 +4,7 @@
  */
 
 import { icons, cssClasses, getFileIcon } from '../../config/constants.js';
-import { createElement } from '../../utils/dom.js';
+import { createElement, safeSetHTML } from '../../utils/dom.js';
 import { debounce, isImageFile, isPdfFile, isBinaryFile, getMimeType } from '../../utils/helpers.js';
 import { scrollToFileInCurrentPage, navigateToFile } from '../../utils/gitlab.js';
 import { highlightCode } from '../../core/highlight.js';
@@ -103,8 +103,8 @@ export function renderTree(container, node, level = 0, filter = '', specificComm
 
             if (shouldExpand) {
                 item.element.classList.add(cssClasses.expanded);
-                item.chevron.innerHTML = icons.chevronDown;
-                item.icon.innerHTML = icons.folderOpen;
+                safeSetHTML(item.chevron, icons.chevronDown);
+                safeSetHTML(item.icon, icons.folderOpen);
             }
         }
     });
@@ -138,13 +138,13 @@ function setupTreeEventDelegation(treeContainer, specificCommitSha, previewPanel
 
             if (isExpanded) {
                 treeItem.classList.remove(cssClasses.expanded);
-                itemChevron.innerHTML = icons.chevronRight;
-                itemIcon.innerHTML = icons.folderClosed;
+                safeSetHTML(itemChevron, icons.chevronRight);
+                safeSetHTML(itemIcon, icons.folderClosed);
                 childContainer.style.display = 'none';
             } else {
                 treeItem.classList.add(cssClasses.expanded);
-                itemChevron.innerHTML = icons.chevronDown;
-                itemIcon.innerHTML = icons.folderOpen;
+                safeSetHTML(itemChevron, icons.chevronDown);
+                safeSetHTML(itemIcon, icons.folderOpen);
                 childContainer.style.display = 'block';
 
                 if (!isProgrammaticToggle) {
@@ -211,7 +211,7 @@ function createTreeItem(child, level, isCollapsible) {
     });
     
     if (iconData.type === 'svg') {
-        icon.innerHTML = iconData.value;
+        safeSetHTML(icon, iconData.value);
     } else {
         icon.className += ' ' + iconData.value;
     }
@@ -297,7 +297,7 @@ export function showFileInPreview(previewPanel, fileNode, mode = 'diff') {
     revokePdfBlobUrl();
 
     const searchBar = previewPanel.querySelector(`.${cssClasses.previewSearchBar}`);
-    previewPanel.innerHTML = '';
+    previewPanel.replaceChildren();
     if (searchBar) {
         previewPanel.appendChild(searchBar);
         searchBar.style.display = 'none';
@@ -412,7 +412,7 @@ function renderEmptyDiffWithLoadButton(container, fileNode, previewPanel) {
  */
 async function renderFullFileContent(container, fileNode, refOverride = null) {
     if (!currentProjectInfo) {
-        container.innerHTML = '<div class="ct-diff-empty">Contexte du projet non disponible.</div>';
+        container.appendChild(createElement('div', { className: 'ct-diff-empty' }, 'Contexte du projet non disponible.'));
         return;
     }
 
@@ -466,9 +466,9 @@ async function renderFullFileContent(container, fileNode, refOverride = null) {
         const contentCell = createElement('span', { className: 'ct-line-content' });
 
         if (line === '') {
-            contentCell.innerHTML = ' ';
+            contentCell.textContent = '\u00A0';
         } else {
-            contentCell.innerHTML = highlightCode(line, fileExt, filename);
+            safeSetHTML(contentCell, highlightCode(line, fileExt, filename));
         }
 
         lineRow.appendChild(lineNumCell);
@@ -579,7 +579,7 @@ function renderBinaryContent(container, fileNode) {
     const iconData = getFileIcon(fileNode.name);
     const icon = createElement('span', { className: 'ct-preview-icon' });
     if (iconData.type === 'svg') {
-        icon.innerHTML = iconData.value;
+        safeSetHTML(icon, iconData.value);
     } else {
         icon.className += ' ' + iconData.value;
     }
@@ -633,7 +633,7 @@ export function collapseAllFolders(treeViewElement) {
  */
 export function setupSearch(searchInput, treeView, fileTree, specificCommitSha, previewPanel = null) {
     const filterTree = debounce((filter) => {
-        treeView.innerHTML = '';
+        treeView.replaceChildren();
         treeView._delegationSetup = false;
         renderTree(treeView, fileTree, 0, filter, specificCommitSha, previewPanel);
     }, 200);

@@ -38,6 +38,17 @@ export function waitForElement(selector, timeout = 10000) {
 }
 
 /**
+ * Safely sets HTML content of an element using DOMParser.
+ * Avoids direct innerHTML assignment — suitable for SVG icons and syntax-highlighted code.
+ * @param {HTMLElement} element - Target element
+ * @param {string} html - HTML or SVG string to set
+ */
+export function safeSetHTML(element, html) {
+    const doc = new DOMParser().parseFromString(`<body>${html}</body>`, 'text/html');
+    element.replaceChildren(...doc.body.childNodes);
+}
+
+/**
  * Creates an HTML element with specified attributes and children
  * @param {string} tag - HTML tag name
  * @param {Object} [attributes={}] - Element attributes
@@ -66,7 +77,7 @@ export function createElement(tag, attributes = {}, children) {
 
     if (children !== undefined) {
         if (typeof children === 'string') {
-            element.innerHTML = children;
+            safeSetHTML(element, children);
         } else if (Array.isArray(children)) {
             children.forEach(child => {
                 if (child) element.appendChild(child);

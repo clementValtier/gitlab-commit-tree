@@ -27,6 +27,7 @@
   ],
   "browser_specific_settings": {
     "gecko": {
+        "id": "gitlab-commit-tree@clementvaltier",
         "data_collection_permissions": {
           "required": [
             "none"
