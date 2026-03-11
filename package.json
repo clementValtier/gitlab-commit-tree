@@ -9,7 +9,7 @@
     "build": "vite build",
     "start": "npm run build && concurrently \"npm run dev\" \"web-ext run --source-dir=dist --firefox-profile=default-release\"",
     "ext:lint": "web-ext lint --source-dir=dist",
-    "ext:build": "npm run build && web-ext build --source-dir=dist --artifacts-dir=build"
+    "ext:build": "npm run build && web-ext build --source-dir=dist --artifacts-dir=build --overwrite-dest"
   },
   "jest": {
     "testEnvironment": "jsdom"
