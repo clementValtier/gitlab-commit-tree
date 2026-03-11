@@ -28,6 +28,16 @@ const fullFileCache = new Map();
 /** @type {Map<string, string>} Cache for fetched diff contents */
 const diffContentCache = new Map();
 
+/** @type {string|null} Active PDF blob URL to revoke on next preview change */
+let currentPdfBlobUrl = null;
+
+function revokePdfBlobUrl() {
+    if (currentPdfBlobUrl) {
+        URL.revokeObjectURL(currentPdfBlobUrl);
+        currentPdfBlobUrl = null;
+    }
+}
+
 /**
  * Sets the project context for API calls
  * @param {Object} projectInfo - Project information
@@ -284,6 +294,8 @@ function autoExpandSingleChild(childContainer, child) {
  * Shows file in the preview panel
  */
 export function showFileInPreview(previewPanel, fileNode, mode = 'diff') {
+    revokePdfBlobUrl();
+
     const searchBar = previewPanel.querySelector(`.${cssClasses.previewSearchBar}`);
     previewPanel.innerHTML = '';
     if (searchBar) {
@@ -504,6 +516,23 @@ async function renderImageContent(container, fileNode, ref, fileExt) {
 }
 
 /**
+ * Converts a base64 string to a Blob object URL.
+ * More reliable than data URIs in browser extensions (especially Firefox).
+ * @param {string} base64 - Base64-encoded content
+ * @param {string} mimeType - MIME type of the content
+ * @returns {string} Object URL — must be revoked when no longer needed
+ */
+function base64ToBlobUrl(base64, mimeType) {
+    const byteCharacters = atob(base64);
+    const byteArray = new Uint8Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+        byteArray[i] = byteCharacters.charCodeAt(i);
+    }
+    const blob = new Blob([byteArray], { type: mimeType });
+    return URL.createObjectURL(blob);
+}
+
+/**
  * Renders a PDF file in the preview panel
  */
 async function renderPdfContent(container, fileNode, ref) {
@@ -528,13 +557,14 @@ async function renderPdfContent(container, fileNode, ref) {
         }
     }
 
+    const blobUrl = base64ToBlobUrl(base64, 'application/pdf');
+    currentPdfBlobUrl = blobUrl;
+
     const wrapper = createElement('div', { className: 'ct-preview-pdf-wrapper' });
     const embed = createElement('embed', {
         className: 'ct-preview-pdf',
-        src: `data:application/pdf;base64,${base64}`,
-        type: 'application/pdf',
-        width: '100%',
-        height: '100%'
+        src: blobUrl,
+        type: 'application/pdf'
     });
     wrapper.appendChild(embed);
     container.appendChild(wrapper);
