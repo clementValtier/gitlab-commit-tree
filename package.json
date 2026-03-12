@@ -1,7 +1,7 @@
 {
   "name": "gitlab-commit-tree",
   "displayName": "GitLab Commit Tree",
-  "version": "3.5.0",
+  "version": "3.5.1",
   "description": "Affiche une arborescence des fichiers modifiés dans les commits, comparaisons et historiques de branches GitLab",
   "scripts": {
     "test": "jest",
@@ -12,7 +12,12 @@
     "ext:build": "npm run build && web-ext build --source-dir=dist --artifacts-dir=build --overwrite-dest"
   },
   "jest": {
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "moduleNameMapper": {
+      "^virtual:material-icons$": "<rootDir>/tests/__mocks__/material-icons.js",
+      "^mime$": "<rootDir>/tests/__mocks__/mime.js",
+      "^binary-extensions$": "<rootDir>/tests/__mocks__/binary-extensions.js"
+    }
   },
   "type": "module",
   "devDependencies": {

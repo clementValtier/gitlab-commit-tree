@@ -5,47 +5,29 @@
 
 import { icons, cssClasses, getFileIcon } from '../../config/constants.js';
 import { createElement, safeSetHTML } from '../../utils/dom.js';
-import { debounce, isImageFile, isPdfFile, isBinaryFile, getMimeType } from '../../utils/helpers.js';
+import { debounce } from '../../utils/helpers.js';
 import { scrollToFileInCurrentPage, navigateToFile } from '../../utils/gitlab.js';
-import { highlightCode } from '../../core/highlight.js';
-import { fetchFileContent, fetchDiffForPath } from '../../api/client.js';
+import { fetchDiffForPath } from '../../api/client.js';
 import { showContextMenu } from '../common/menu.js';
 import { renderDiff, extractDiffFromGitLabHTML, toggleDiffView } from '../preview/diff-renderer.js';
 import { createLoadingIndicator } from '../common/container.js';
+import { setProjectContext as _setContext, getProjectInfo, getCommitSha } from '../../core/context.js';
+import { renderFullFileContent, revokePdfBlobUrl } from '../preview/file-renderer.js';
 
 /** @type {boolean} Flag to prevent cascade opening during programmatic operations */
 let isProgrammaticToggle = false;
 
-/** @type {Object|null} Current project info for API calls */
-let currentProjectInfo = null;
-
-/** @type {string|null} Current specific commit SHA */
-let currentCommitSha = null;
-
-/** @type {Map<string, string>} Cache for full file contents */
-const fullFileCache = new Map();
-
 /** @type {Map<string, string>} Cache for fetched diff contents */
 const diffContentCache = new Map();
 
-/** @type {string|null} Active PDF blob URL to revoke on next preview change */
-let currentPdfBlobUrl = null;
-
-function revokePdfBlobUrl() {
-    if (currentPdfBlobUrl) {
-        URL.revokeObjectURL(currentPdfBlobUrl);
-        currentPdfBlobUrl = null;
-    }
-}
-
 /**
- * Sets the project context for API calls
+ * Sets the project context for API calls.
+ * Delegates to the shared context module.
  * @param {Object} projectInfo - Project information
  * @param {string|null} commitSha - Specific commit SHA
  */
 export function setProjectContext(projectInfo, commitSha = null) {
-    currentProjectInfo = projectInfo;
-    currentCommitSha = commitSha;
+    _setContext(projectInfo, commitSha);
 }
 
 /**
@@ -305,7 +287,7 @@ export function showFileInPreview(previewPanel, fileNode, mode = 'diff') {
         if (searchInput) searchInput.value = '';
     }
     previewPanel._currentFileNode = fileNode;
-    const ref = fileNode.ref || currentCommitSha;
+    const ref = fileNode.ref || getCommitSha();
 
     const previewHeader = createElement('div', { className: 'ct-preview-header' });
     const fileInfo = createElement('div', { className: 'ct-preview-file-info' });
@@ -347,7 +329,8 @@ export function showFileInPreview(previewPanel, fileNode, mode = 'diff') {
     } else {
         if (fileNode.has_diff_content && fileNode.diff_content) {
             renderDiff(previewContent, fileNode.diff_content, fileNode.path);
-        } else if (currentProjectInfo && currentProjectInfo.isComparePage) {
+        } else if (getProjectInfo() && getProjectInfo().isComparePage) {
+            const currentProjectInfo = getProjectInfo();
             const cacheKey = `${currentProjectInfo.projectPath}:${fileNode.path}:${currentProjectInfo.targetBranch}...${currentProjectInfo.sourceBranch}`;
             let cachedDiff = diffContentCache.get(cacheKey);
             
@@ -360,8 +343,8 @@ export function showFileInPreview(previewPanel, fileNode, mode = 'diff') {
                 (async () => {
                     try {
                         const diffData = await fetchDiffForPath(
-                            currentProjectInfo, 
-                            fileNode.path, 
+                            getProjectInfo(),
+                            fileNode.path,
                             fileNode.old_path || fileNode.path,
                             fileNode.status
                         );
@@ -397,201 +380,14 @@ function renderEmptyDiffWithLoadButton(container, fileNode, previewPanel) {
         'Les différences ne sont pas accessibles pour ce fichier.');
     emptyDiv.appendChild(emptyText);
 
-    if (currentProjectInfo) {
+    if (getProjectInfo()) {
         const viewFileBtn = createElement('button', {
             className: `${cssClasses.button} ct-diff-load-btn`
         }, `${icons.file} <span>Ouvrir le fichier</span>`);
-        viewFileBtn.onclick = () => navigateToFile(fileNode.path, currentProjectInfo, fileNode.ref || currentCommitSha);
+        viewFileBtn.onclick = () => navigateToFile(fileNode.path, getProjectInfo(), fileNode.ref || getCommitSha());
         emptyDiv.appendChild(viewFileBtn);
     }
     container.appendChild(emptyDiv);
-}
-
-/**
- * Renders the full file content (without diff)
- */
-async function renderFullFileContent(container, fileNode, refOverride = null) {
-    if (!currentProjectInfo) {
-        container.appendChild(createElement('div', { className: 'ct-diff-empty' }, 'Contexte du projet non disponible.'));
-        return;
-    }
-
-    const ref = refOverride || fileNode.ref || currentCommitSha || currentProjectInfo.commitSha || currentProjectInfo.sourceBranch || currentProjectInfo.branchName || 'main';
-    const filename = fileNode.name;
-    const fileExt = filename.split('.').pop()?.toLowerCase() || '';
-
-    if (isImageFile(fileExt)) {
-        await renderImageContent(container, fileNode, ref, fileExt);
-        return;
-    }
-
-    if (isPdfFile(fileExt)) {
-        await renderPdfContent(container, fileNode, ref);
-        return;
-    }
-
-    if (isBinaryFile(fileExt)) {
-        renderBinaryContent(container, fileNode);
-        return;
-    }
-
-    const cacheKey = `${currentProjectInfo.projectPath}:${fileNode.path}@${ref}`;
-    let fileContent = fullFileCache.get(cacheKey);
-
-    if (!fileContent) {
-        const loading = createLoadingIndicator('Chargement du fichier...');
-        container.appendChild(loading);
-
-        try {
-            const fileData = await fetchFileContent(currentProjectInfo, fileNode.path, ref);
-            fileContent = fileData.content;
-            fullFileCache.set(cacheKey, fileContent);
-            loading.remove();
-        } catch (error) {
-            loading.remove();
-            const errorDiv = createElement('div', { className: 'ct-diff-empty ct-diff-error' });
-            errorDiv.textContent = `Erreur lors du chargement du fichier: ${error.message}`;
-            container.appendChild(errorDiv);
-            return;
-        }
-    }
-
-    const lines = fileContent.split('\n');
-    const table = createElement('div', { className: cssClasses.fullFileContainer });
-
-    lines.forEach((line, index) => {
-        const lineNum = index + 1;
-        const lineRow = createElement('div', { className: cssClasses.fullFileLine });
-        const lineNumCell = createElement('span', { className: cssClasses.fullFileLineNum }, lineNum.toString());
-        const contentCell = createElement('span', { className: 'ct-line-content' });
-
-        if (line === '') {
-            contentCell.textContent = '\u00A0';
-        } else {
-            safeSetHTML(contentCell, highlightCode(line, fileExt, filename));
-        }
-
-        lineRow.appendChild(lineNumCell);
-        lineRow.appendChild(contentCell);
-        table.appendChild(lineRow);
-    });
-
-    container.appendChild(table);
-}
-
-/**
- * Renders an image file in the preview panel
- */
-async function renderImageContent(container, fileNode, ref, fileExt) {
-    const cacheKey = `img:${currentProjectInfo.projectPath}:${fileNode.path}@${ref}`;
-    let base64 = fullFileCache.get(cacheKey);
-
-    if (!base64) {
-        const loading = createLoadingIndicator('Chargement de l\'image...');
-        container.appendChild(loading);
-
-        try {
-            const fileData = await fetchFileContent(currentProjectInfo, fileNode.path, ref, true);
-            base64 = fileData.content;
-            fullFileCache.set(cacheKey, base64);
-            loading.remove();
-        } catch (error) {
-            loading.remove();
-            const errorDiv = createElement('div', { className: 'ct-diff-empty ct-diff-error' });
-            errorDiv.textContent = `Erreur lors du chargement de l'image: ${error.message}`;
-            container.appendChild(errorDiv);
-            return;
-        }
-    }
-
-    const mimeType = getMimeType(fileExt);
-    const wrapper = createElement('div', { className: 'ct-preview-image-wrapper' });
-    const img = createElement('img', {
-        className: 'ct-preview-image',
-        src: `data:${mimeType};base64,${base64}`,
-        alt: fileNode.name
-    });
-    wrapper.appendChild(img);
-    container.appendChild(wrapper);
-}
-
-/**
- * Converts a base64 string to a Blob object URL.
- * More reliable than data URIs in browser extensions (especially Firefox).
- * @param {string} base64 - Base64-encoded content
- * @param {string} mimeType - MIME type of the content
- * @returns {string} Object URL — must be revoked when no longer needed
- */
-function base64ToBlobUrl(base64, mimeType) {
-    const byteCharacters = atob(base64);
-    const byteArray = new Uint8Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-        byteArray[i] = byteCharacters.charCodeAt(i);
-    }
-    const blob = new Blob([byteArray], { type: mimeType });
-    return URL.createObjectURL(blob);
-}
-
-/**
- * Renders a PDF file in the preview panel
- */
-async function renderPdfContent(container, fileNode, ref) {
-    const cacheKey = `pdf:${currentProjectInfo.projectPath}:${fileNode.path}@${ref}`;
-    let base64 = fullFileCache.get(cacheKey);
-
-    if (!base64) {
-        const loading = createLoadingIndicator('Chargement du PDF...');
-        container.appendChild(loading);
-
-        try {
-            const fileData = await fetchFileContent(currentProjectInfo, fileNode.path, ref, true);
-            base64 = fileData.content;
-            fullFileCache.set(cacheKey, base64);
-            loading.remove();
-        } catch (error) {
-            loading.remove();
-            const errorDiv = createElement('div', { className: 'ct-diff-empty ct-diff-error' });
-            errorDiv.textContent = `Erreur lors du chargement du PDF: ${error.message}`;
-            container.appendChild(errorDiv);
-            return;
-        }
-    }
-
-    const blobUrl = base64ToBlobUrl(base64, 'application/pdf');
-    currentPdfBlobUrl = blobUrl;
-
-    const wrapper = createElement('div', { className: 'ct-preview-pdf-wrapper' });
-    const embed = createElement('embed', {
-        className: 'ct-preview-pdf',
-        src: blobUrl,
-        type: 'application/pdf'
-    });
-    wrapper.appendChild(embed);
-    container.appendChild(wrapper);
-}
-
-/**
- * Renders a placeholder for non-previewable binary files
- */
-function renderBinaryContent(container, fileNode) {
-    const div = createElement('div', { className: 'ct-diff-empty' });
-    
-    const iconData = getFileIcon(fileNode.name);
-    const icon = createElement('span', { className: 'ct-preview-icon' });
-    if (iconData.type === 'svg') {
-        safeSetHTML(icon, iconData.value);
-    } else {
-        icon.className += ' ' + iconData.value;
-    }
-
-    const text = createElement('span', { className: 'ct-preview-text' }, 'Fichier binaire — prévisualisation non disponible');
-    const size = fileNode.size
-        ? createElement('span', { className: 'ct-preview-text' }, `${(fileNode.size / 1024).toFixed(1)} Ko`)
-        : null;
-    div.appendChild(icon);
-    div.appendChild(text);
-    if (size) div.appendChild(size);
-    container.appendChild(div);
 }
 
 /**
