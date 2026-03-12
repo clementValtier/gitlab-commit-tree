@@ -1,13 +1,13 @@
 {
   "name": "gitlab-commit-tree",
   "displayName": "GitLab Commit Tree",
-  "version": "3.5.1",
+  "version": "3.5.2",
   "description": "Affiche une arborescence des fichiers modifiés dans les commits, comparaisons et historiques de branches GitLab",
   "scripts": {
     "test": "jest",
     "dev": "vite build --mode development --watch",
     "build": "vite build",
-    "start": "npm run build && concurrently \"npm run dev\" \"web-ext run --source-dir=dist --firefox-profile=default-release\"",
+    "start": "vite build --mode development && concurrently \"npm run dev\" \"web-ext run --source-dir=dist\"",
     "ext:lint": "web-ext lint --source-dir=dist",
     "ext:build": "npm run build && web-ext build --source-dir=dist --artifacts-dir=build --overwrite-dest"
   },

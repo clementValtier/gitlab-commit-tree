@@ -71,8 +71,8 @@ export function renderTree(container, node, level = 0, filter = '', specificComm
         container.appendChild(item.element);
 
         if (child.type === 'folder' && isCollapsible) {
-            const shouldExpand = filter !== '' || level === 0;
-            
+            const shouldExpand = filter !== '' || Object.values(child.children).length <= 5;
+
             const childContainer = createElement('div', {
                 className: cssClasses.treeChildren,
                 style: { display: shouldExpand ? 'block' : 'none' }
