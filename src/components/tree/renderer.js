@@ -40,6 +40,9 @@ export function setProjectContext(projectInfo, commitSha = null) {
  * @param {HTMLElement|null} [previewPanel=null] - Preview panel element
  */
 export function renderTree(container, node, level = 0, filter = '', specificCommitSha = null, previewPanel = null) {
+    const countTotalFiles = (n) => Object.values(n.children).reduce((sum, child) =>
+        sum + (child.type === 'file' ? 1 : countTotalFiles(child)), 0);
+
     const nodeArray = Object.values(node.children).sort((a, b) => {
         if (a.type !== b.type) {
             return a.type === 'folder' ? -1 : 1;
@@ -71,7 +74,7 @@ export function renderTree(container, node, level = 0, filter = '', specificComm
         container.appendChild(item.element);
 
         if (child.type === 'folder' && isCollapsible) {
-            const shouldExpand = filter !== '' || Object.values(child.children).length <= 5;
+            const shouldExpand = filter !== '' || (Object.values(child.children).length <= 5 && countTotalFiles(child) <= 25);
 
             const childContainer = createElement('div', {
                 className: cssClasses.treeChildren,

@@ -141,13 +141,75 @@ describe('renderTree', () => {
         expect(items[0].textContent).toContain('README.md');
     });
 
-    test('should expand folders when filter is active', () => {
-        renderTree(container, fileTree, 0, 'app.js');
+    test('should expand folder when filter is active, regardless of children count', () => {
+        // 6 enfants directs (dépasserait la limite), mais le filtre force l'expansion
+        const children = {};
+        for (let i = 1; i <= 6; i++) {
+            children[`file${i}.js`] = { type: 'file', name: `file${i}.js`, path: `src/file${i}.js`, status: 'added' };
+        }
+        const bigTree = {
+            type: 'folder', name: 'root', children: {
+                src: { type: 'folder', name: 'src', path: 'src', children }
+            }
+        };
+
+        renderTree(container, bigTree, 0, 'file1.js');
 
         const srcFolder = Array.from(container.querySelectorAll('.ct-tree-item'))
-            .find(item => item.textContent.includes('src'));
-
+            .find(item => item.dataset.path === 'src');
         expect(srcFolder.classList.contains('ct-expanded')).toBe(true);
+    });
+
+    test('should expand folder with 5 or fewer direct children but not with more than 5', () => {
+        // 5 enfants directs → expand ; 6 enfants directs → lock
+        const makeFiles = (prefix, count) => {
+            const ch = {};
+            for (let i = 1; i <= count; i++) {
+                ch[`${prefix}${i}.js`] = { type: 'file', name: `${prefix}${i}.js`, path: `${prefix}/${prefix}${i}.js`, status: 'added' };
+            }
+            return ch;
+        };
+        const treeData = {
+            type: 'folder', name: 'root', children: {
+                ok:  { type: 'folder', name: 'ok',  path: 'ok',  children: makeFiles('f', 5) },
+                big: { type: 'folder', name: 'big', path: 'big', children: makeFiles('g', 6) }
+            }
+        };
+
+        renderTree(container, treeData);
+
+        const okFolder  = Array.from(container.querySelectorAll('.ct-tree-item')).find(i => i.dataset.path === 'ok');
+        const bigFolder = Array.from(container.querySelectorAll('.ct-tree-item')).find(i => i.dataset.path === 'big');
+
+        expect(okFolder.classList.contains('ct-expanded')).toBe(true);
+        expect(bigFolder.classList.contains('ct-expanded')).toBe(false);
+    });
+
+    test('should not expand folder whose subtree exceeds 25 total files', () => {
+        // 3 sous-dossiers (≤5 enfants directs) mais 27 fichiers au total → lock
+        const buildSubfolder = (name, count) => {
+            const ch = {};
+            for (let i = 0; i < count; i++) {
+                ch[`${name}${i}.js`] = { type: 'file', name: `${name}${i}.js`, path: `deep/${name}/${name}${i}.js`, status: 'added' };
+            }
+            return { type: 'folder', name, path: `deep/${name}`, children: ch };
+        };
+        const deepTree = {
+            type: 'folder', name: 'root', children: {
+                deep: {
+                    type: 'folder', name: 'deep', path: 'deep', children: {
+                        a: buildSubfolder('a', 9),  // 3 × 9 = 27 > 25
+                        b: buildSubfolder('b', 9),
+                        c: buildSubfolder('c', 9)
+                    }
+                }
+            }
+        };
+
+        renderTree(container, deepTree);
+
+        const deepFolder = Array.from(container.querySelectorAll('.ct-tree-item')).find(i => i.dataset.path === 'deep');
+        expect(deepFolder.classList.contains('ct-expanded')).toBe(false);
     });
 
     test('should render status badges', () => {
