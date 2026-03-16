@@ -224,6 +224,60 @@ describe('renderTree', () => {
     });
 });
 
+describe('Ctrl+click on folder', () => {
+    let treeView;
+
+    const nestedTree = {
+        type: 'folder', name: 'root', children: {
+            parent: {
+                type: 'folder', name: 'parent', path: 'parent', children: {
+                    child: {
+                        type: 'folder', name: 'child', path: 'parent/child', children: {
+                            grandchild: {
+                                type: 'folder', name: 'grandchild', path: 'parent/child/grandchild', children: {
+                                    'file.js': { type: 'file', name: 'file.js', path: 'parent/child/grandchild/file.js', status: 'added' }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    beforeEach(() => {
+        treeView = createTreeContainer('Test', 1).treeView;
+        renderTree(treeView, nestedTree);
+    });
+
+    test('should recursively expand all descendants', () => {
+        collapseAllFolders(treeView);
+
+        const parentFolder = Array.from(treeView.querySelectorAll('.ct-tree-item'))
+            .find(i => i.dataset.path === 'parent');
+
+        parentFolder.querySelector('.ct-tree-item-chevron')
+            .dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: true }));
+
+        treeView.querySelectorAll('.ct-tree-item.ct-folder').forEach(folder => {
+            expect(folder.classList.contains('ct-expanded')).toBe(true);
+        });
+    });
+
+    test('should recursively collapse all descendants', () => {
+        // tout est déjà expanded par défaut (1 seul enfant à chaque niveau)
+        const parentFolder = Array.from(treeView.querySelectorAll('.ct-tree-item'))
+            .find(i => i.dataset.path === 'parent');
+
+        parentFolder.querySelector('.ct-tree-item-chevron')
+            .dispatchEvent(new MouseEvent('click', { bubbles: true, ctrlKey: true }));
+
+        treeView.querySelectorAll('.ct-tree-item.ct-folder').forEach(folder => {
+            expect(folder.classList.contains('ct-expanded')).toBe(false);
+        });
+    });
+});
+
 describe('expandAllFolders and collapseAllFolders', () => {
     let container;
     let treeView;

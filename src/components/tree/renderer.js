@@ -122,6 +122,13 @@ function setupTreeEventDelegation(treeContainer, specificCommitSha, previewPanel
             const isExpanded = treeItem.classList.contains(cssClasses.expanded);
 
             if (isExpanded) {
+                if ((e.ctrlKey || e.metaKey) && !isProgrammaticToggle) {
+                    isProgrammaticToggle = true;
+                    Array.from(childContainer.querySelectorAll(
+                        `.${cssClasses.treeItem}.${cssClasses.folder}.${cssClasses.expanded}`
+                    )).reverse().forEach(item => item.querySelector(`.${cssClasses.treeItemChevron}`)?.click());
+                    isProgrammaticToggle = false;
+                }
                 treeItem.classList.remove(cssClasses.expanded);
                 safeSetHTML(itemChevron, icons.chevronRight);
                 safeSetHTML(itemIcon, icons.folderClosed);
@@ -132,7 +139,13 @@ function setupTreeEventDelegation(treeContainer, specificCommitSha, previewPanel
                 safeSetHTML(itemIcon, icons.folderOpen);
                 childContainer.style.display = 'block';
 
-                if (!isProgrammaticToggle) {
+                if ((e.ctrlKey || e.metaKey) && !isProgrammaticToggle) {
+                    isProgrammaticToggle = true;
+                    childContainer.querySelectorAll(
+                        `.${cssClasses.treeItem}.${cssClasses.folder}:not(.${cssClasses.expanded})`
+                    ).forEach(item => item.querySelector(`.${cssClasses.treeItemChevron}`)?.click());
+                    isProgrammaticToggle = false;
+                } else if (!isProgrammaticToggle) {
                     const childData = treeItem._childData;
                     if (childData) {
                         autoExpandSingleChild(childContainer, childData);
