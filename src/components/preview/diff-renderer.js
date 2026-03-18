@@ -93,12 +93,12 @@ export function renderDiff(container, diffContent, filePath) {
             if (removed.length > 0 && removed.length === added.length) {
                 for (let k = 0; k < removed.length; k++) {
                     const oldText = removed[k].substring(1);
-                    const changes = Diff.diffWords(oldText, added[k].substring(1));
+                    const changes = Diff.diffWordsWithSpace(oldText, added[k].substring(1));
                     renderModifiedLine(table, 'removed', oldLineNum++, '', changes, true, fileExt, filename);
                 }
                 for (let k = 0; k < added.length; k++) {
                     const newText = added[k].substring(1);
-                    const changes = Diff.diffWords(removed[k].substring(1), newText);
+                    const changes = Diff.diffWordsWithSpace(removed[k].substring(1), newText);
                     renderModifiedLine(table, 'added', '', newLineNum++, changes, false, fileExt, filename);
                 }
             } else {
