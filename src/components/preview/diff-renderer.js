@@ -72,20 +72,22 @@ export function renderDiff(container, diffContent, filePath) {
             continue;
         }
 
-        if (line.startsWith('+++') || line.startsWith('---') || line.startsWith('\\')) {
+        if (/^(\+{3}|-{3}|\\)/.test(line)) {
             continue;
         }
 
         if (line.startsWith('-')) {
             let removed = [];
             let j = i;
-            while (j < lines.length && lines[j].startsWith('-') && !lines[j].startsWith('---')) {
+            while (j < lines.length && lines[j].startsWith('-') && !/^(-{3}|\\)/.test(lines[j])) {
                 removed.push(lines[j]);
                 j++;
             }
 
+            while (j < lines.length && lines[j].startsWith('\\')) j++;
+
             let added = [];
-            while (j < lines.length && lines[j].startsWith('+') && !lines[j].startsWith('+++')) {
+            while (j < lines.length && lines[j].startsWith('+') && !/^(\+{3}|\\)/.test(lines[j])) {
                 added.push(lines[j]);
                 j++;
             }
