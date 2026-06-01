@@ -159,15 +159,25 @@ export function setupPreviewSearch(previewPanel) {
 
         const previewContent = previewPanel.querySelector('.ct-preview-content');
         if (match.element && previewContent) {
-            const elementRect = match.element.getBoundingClientRect();
             const containerRect = previewContent.getBoundingClientRect();
-            const relativeTop = elementRect.top - containerRect.top + previewContent.scrollTop;
-            const centerPosition = relativeTop - (previewContent.clientHeight / 2);
 
-            previewContent.scrollTo({
-                top: Math.max(0, centerPosition),
+            const elementRect = match.element.getBoundingClientRect();
+            const relativeTop = elementRect.top - containerRect.top + previewContent.scrollTop;
+            const centerPositionY = relativeTop - (previewContent.clientHeight / 2);
+
+            const rangeRect = match.range.getBoundingClientRect();
+            const isVisibleX = rangeRect.left >= containerRect.left && rangeRect.right <= containerRect.right;
+
+            const scrollOptions = {
+                top: Math.max(0, centerPositionY),
                 behavior: 'smooth'
-            });
+            };
+            if (!isVisibleX) {
+                const relativeLeft = rangeRect.left - containerRect.left + previewContent.scrollLeft;
+                scrollOptions.left = Math.max(0, relativeLeft - (previewContent.clientWidth / 2));
+            }
+
+            previewContent.scrollTo(scrollOptions);
         }
     };
 

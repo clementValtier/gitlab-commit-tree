@@ -36,6 +36,18 @@ if (!Element.prototype.scrollTo) {
     Element.prototype.scrollTo = function() {};
 }
 
+if (!Range.prototype.getBoundingClientRect) {
+    Range.prototype.getBoundingClientRect = function() {
+        return { top: 0, bottom: 0, left: 0, right: 0, width: 0, height: 0 };
+    };
+}
+
+if (!Range.prototype.getClientRects) {
+    Range.prototype.getClientRects = function() {
+        return [];
+    };
+}
+
 if (!document.elementFromPoint) {
     document.elementFromPoint = function(x, y) {
         return document.body;
