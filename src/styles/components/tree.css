@@ -2,6 +2,10 @@
  * File Tree Component
  */
 
+.ct-tree:focus {
+    outline: none;
+}
+
 .ct-tree {
     flex: 0 0 300px;
     min-width: 150px;

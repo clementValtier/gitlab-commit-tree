@@ -88,6 +88,7 @@ export function createTreeContainer(title, fileCount) {
     const splitView = createElement('div', { className: 'ct-split-view' });
 
     const treeView = createElement('div', { className: cssClasses.tree });
+    treeView.tabIndex = 0;
 
     const previewPanel = createElement('div', { className: 'ct-preview-panel' });
     previewPanel._viewMode = 'diff';

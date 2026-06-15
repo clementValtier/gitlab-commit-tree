@@ -96,6 +96,20 @@ export function renderTree(container, node, level = 0, filter = '', specificComm
 }
 
 /**
+ * Selects a file item in the tree and shows it in the preview panel
+ */
+function selectTreeFile(treeContainer, treeItem, fileNode, previewPanel) {
+    treeContainer.querySelectorAll(`.${cssClasses.treeItem}`).forEach(el => {
+        el.classList.remove('ct-selected');
+    });
+    treeItem.classList.add('ct-selected');
+
+    if (previewPanel) {
+        showFileInPreview(previewPanel, fileNode, previewPanel._viewMode || 'diff');
+    }
+}
+
+/**
  * Sets up event delegation for the entire tree
  */
 function setupTreeEventDelegation(treeContainer, specificCommitSha, previewPanel) {
@@ -157,16 +171,35 @@ function setupTreeEventDelegation(treeContainer, specificCommitSha, previewPanel
             if (!child) return;
 
             if (previewPanel) {
-                showFileInPreview(previewPanel, child, previewPanel._viewMode || 'diff');
-                
-                treeContainer.querySelectorAll(`.${cssClasses.treeItem}`).forEach(el => {
-                    el.classList.remove('ct-selected');
-                });
-                treeItem.classList.add('ct-selected');
+                selectTreeFile(treeContainer, treeItem, child, previewPanel);
+                treeContainer.focus();
             } else if (!scrollToFileInCurrentPage(child.path)) {
                 navigateToFile(child.path, null, child.ref || specificCommitSha);
             }
         }
+    };
+
+    treeContainer.onkeydown = (e) => {
+        if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+        e.preventDefault();
+
+        const fileItems = [
+            ...treeContainer.querySelectorAll(`.${cssClasses.treeItem}.${cssClasses.file}`)
+        ].filter(el => el.offsetParent !== null);
+        if (fileItems.length === 0) return;
+
+        const selectedIndex = fileItems.findIndex(el => el.classList.contains('ct-selected'));
+        const delta = e.key === 'ArrowDown' ? 1 : -1;
+        const nextIndex = Math.max(0, Math.min(fileItems.length - 1, selectedIndex + delta));
+
+        if (nextIndex === selectedIndex) return;
+
+        const nextItem = fileItems[nextIndex];
+        const fileNode = nextItem._fileNode;
+        if (!fileNode) return;
+
+        selectTreeFile(treeContainer, nextItem, fileNode, previewPanel);
+        nextItem.scrollIntoView({ block: 'nearest' });
     };
 
     treeContainer.oncontextmenu = (e) => {
