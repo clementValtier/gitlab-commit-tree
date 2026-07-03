@@ -20,14 +20,15 @@ import {
     setupFullscreen,
     setupCollapse
 } from './components/common/container.js';
-import { 
-    setProjectContext, 
-    renderTree, 
-    setupSearch, 
-    setupViewModeToggle, 
-    expandAllFolders, 
-    collapseAllFolders 
+import {
+    setProjectContext,
+    renderTree,
+    setupSearch,
+    setupViewModeToggle,
+    expandAllFolders,
+    collapseAllFolders
 } from './components/tree/renderer.js';
+import { initCompareSelection, resetCompareSelection } from './components/history/compareSelection.js';
 import './styles/main.css';
 
 (function() {
@@ -185,6 +186,7 @@ import './styles/main.css';
         });
 
         processCommits();
+        initCompareSelection();
 
         const commitsContainer = document.querySelector('.content-list, .flex-list, ul, main') || document.body;
         observer.observe(commitsContainer, { childList: true, subtree: true });
@@ -433,6 +435,7 @@ import './styles/main.css';
     function cleanup() {
         document.querySelectorAll('.ct-wrapper').forEach(el => el.remove());
         setProjectContext(null, null);
+        resetCompareSelection();
     }
 
     /**

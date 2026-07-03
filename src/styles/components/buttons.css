@@ -93,3 +93,13 @@
     height: 14px;
     color: var(--ct-icon-color);
 }
+
+.ct-compare-toggle-btn.ct-view-mode-active {
+    background: #0969da;
+    color: white;
+    border-color: #0969da;
+}
+
+.ct-compare-toggle-btn.ct-view-mode-active:hover {
+    background: #0860ca;
+}

@@ -48,6 +48,51 @@
     border-radius: 0 var(--ct-border-radius) var(--ct-border-radius) 0;
 }
 
+/* Compare selection mode (branch history) */
+.ct-compare-mode-active .commit {
+    cursor: pointer;
+}
+
+.ct-compare-mode-active .commit:hover {
+    background-color: var(--ct-bg-hover);
+}
+
+.ct-compare-selected-start {
+    background-color: var(--ct-bg-subtle);
+    background-color: color-mix(in srgb, var(--ct-status-modified) 14%, var(--ct-bg-default));
+    box-shadow: inset 4px 0 0 var(--ct-status-modified);
+}
+
+.ct-compare-selected-end {
+    background-color: var(--ct-bg-subtle);
+    background-color: color-mix(in srgb, var(--ct-text-link) 14%, var(--ct-bg-default));
+    box-shadow: inset 4px 0 0 var(--ct-text-link);
+}
+
+.ct-compare-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    margin-right: 8px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #fff;
+    border-radius: 10px;
+    white-space: nowrap;
+}
+
+.ct-compare-badge-start {
+    background-color: var(--ct-status-modified);
+}
+
+.ct-compare-badge-end {
+    background-color: var(--ct-text-link);
+}
+
+.ct-compare-top-wrapper {
+    margin-bottom: 16px;
+}
+
 /* Hidden state */
 .ct-hidden {
     display: none !important;

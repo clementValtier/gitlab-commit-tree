@@ -89,6 +89,8 @@ export const gitlabSelectors = {
         commits: '.content-list.commit-list.flex-list',
         commitRow: '.commit-row, .commit-item, .commit-row-description',
         commitActions: '.commit-sha-group.btn-group',
+        commitsList: '#commits-list',
+        treeControls: '.tree-controls',
         treeTableHolder: '#tree-holder .tree-content-holder .table-holder'
     },
     legacy: {
@@ -133,6 +135,11 @@ export const cssClasses = {
     error: 'ct-error',
     commitTreeButton: 'ct-commit-btn',
     commitTreeContainer: 'ct-commit-container',
+    compareToggleBtn: 'ct-compare-toggle-btn',
+    compareModeActive: 'ct-compare-mode-active',
+    compareSelectedStart: 'ct-compare-selected-start',
+    compareSelectedEnd: 'ct-compare-selected-end',
+    compareTopWrapper: 'ct-compare-top-wrapper',
     viewModeToggle: 'ct-view-mode-toggle',
     viewModeButton: 'ct-view-mode-btn',
     viewModeActive: 'ct-view-mode-active',
